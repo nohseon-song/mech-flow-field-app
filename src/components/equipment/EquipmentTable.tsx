@@ -25,14 +25,22 @@ const EquipmentTable = ({
   onDownloadPDF
 }: EquipmentTableProps) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50 border-b border-slate-200">
-            <TableHead className="text-sm font-bold text-slate-700 py-5 px-6">설비명</TableHead>
-            <TableHead className="text-sm font-bold text-slate-700 py-5 px-6">설치위치</TableHead>
-            <TableHead className="text-sm font-bold text-slate-700 py-5 px-6">점검일자</TableHead>
-            <TableHead className="text-sm font-bold text-slate-700 py-5 px-6 text-center">액션</TableHead>
+          <TableRow className="bg-slate-50/80 border-b border-slate-200">
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/3">
+              설비명
+            </TableHead>
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/3">
+              설치위치
+            </TableHead>
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/4">
+              점검일자
+            </TableHead>
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-20 text-center">
+              액션
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,10 +56,15 @@ const EquipmentTable = ({
           ))}
           {equipmentData.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-12 text-slate-500">
-                <div className="flex flex-col items-center gap-2">
-                  <Settings className="h-8 w-8 text-slate-300" />
-                  <p className="text-sm">등록된 설비가 없습니다.</p>
+              <TableCell colSpan={4} className="text-center py-16 text-slate-500">
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <div className="p-4 bg-slate-100 rounded-full">
+                    <Settings className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-base font-medium text-slate-600">등록된 설비가 없습니다</p>
+                    <p className="text-sm text-slate-400 mt-1">새로운 설비를 등록해보세요</p>
+                  </div>
                 </div>
               </TableCell>
             </TableRow>

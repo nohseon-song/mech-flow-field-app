@@ -34,17 +34,15 @@ const EquipmentStatusCard = ({
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-white">
-      <CardHeader className="pb-6">
-        <CardTitle className="text-lg">
-          <EquipmentStatusHeader
-            equipmentCount={equipmentData.length}
-            onAddEquipment={onAddEquipment}
-            onDownloadAll={handleDownloadAll}
-          />
-        </CardTitle>
+    <Card className="shadow-lg border-0 bg-white rounded-xl">
+      <CardHeader className="pb-4 px-6 pt-6">
+        <EquipmentStatusHeader
+          equipmentCount={equipmentData.length}
+          onAddEquipment={onAddEquipment}
+          onDownloadAll={handleDownloadAll}
+        />
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="px-6 pb-6 pt-0">
         <EquipmentTable
           equipmentData={equipmentData}
           onEquipmentNameClick={onEquipmentNameClick}

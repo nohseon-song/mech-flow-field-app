@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle, Sparkles, Plus, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EquipmentRegistrationDialog from '@/components/EquipmentRegistrationDialog';
+import EquipmentDetailsDialog from '@/components/EquipmentDetailsDialog';
 
 const Index = () => {
   const navigate = useNavigate();
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
+  const [selectedEquipment, setSelectedEquipment] = useState(null);
 
   const [equipmentData, setEquipmentData] = useState([
     {
@@ -64,6 +65,16 @@ const Index = () => {
 
   const handleEquipmentDelete = (equipmentId) => {
     setEquipmentData(prev => prev.filter(item => item.id !== equipmentId));
+  };
+
+  const handleEquipmentNameClick = (equipment) => {
+    setSelectedEquipment(equipment);
+    setIsDetailsOpen(true);
+  };
+
+  const handleDetailsEdit = (equipment) => {
+    setEditingEquipment(equipment);
+    setIsRegistrationOpen(true);
   };
 
   return (
@@ -144,7 +155,12 @@ const Index = () => {
                 <TableBody>
                   {equipmentData.map((equipment) => (
                     <TableRow key={equipment.id}>
-                      <TableCell className="text-xs font-medium">{equipment.name}</TableCell>
+                      <TableCell 
+                        className="text-xs font-medium text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                        onClick={() => handleEquipmentNameClick(equipment)}
+                      >
+                        {equipment.name}
+                      </TableCell>
                       <TableCell className="text-xs">{equipment.location}</TableCell>
                       <TableCell className="text-xs">{equipment.inspectionDate}</TableCell>
                       <TableCell>
@@ -199,9 +215,15 @@ const Index = () => {
         onDelete={handleEquipmentDelete}
         editingEquipment={editingEquipment}
       />
+
+      <EquipmentDetailsDialog
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        equipment={selectedEquipment}
+        onEdit={handleDetailsEdit}
+      />
     </div>
   );
 };
 
 export default Index;
-

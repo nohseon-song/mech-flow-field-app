@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Settings, Save, FileText, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { KnowledgeFileUpload } from '@/components/guidelines/KnowledgeFileUpload';
+import { useKnowledgeFiles } from '@/hooks/useKnowledgeFiles';
 
 interface Guidelines {
   operation: string;
@@ -14,6 +16,7 @@ interface Guidelines {
 
 const GuidelineSettings = () => {
   const navigate = useNavigate();
+  const { uploadedFiles, saveFiles, getEnhancedKnowledgeGuideline } = useKnowledgeFiles();
   const [guidelines, setGuidelines] = useState<Guidelines>({
     operation: '',
     knowledge: ''
@@ -75,7 +78,15 @@ const GuidelineSettings = () => {
   }, []);
 
   const saveGuidelines = () => {
-    localStorage.setItem('ai-guidelines', JSON.stringify(guidelines));
+    // 지식지침의 경우 업로드된 파일 내용을 포함하여 저장
+    const finalGuidelines = {
+      ...guidelines,
+      knowledge: activeTab === 'knowledge' && uploadedFiles.length > 0 
+        ? getEnhancedKnowledgeGuideline(guidelines.knowledge)
+        : guidelines.knowledge
+    };
+    
+    localStorage.setItem('ai-guidelines', JSON.stringify(finalGuidelines));
     toast({
       title: "지침 저장 완료",
       description: `${activeTab === 'operation' ? '운용지침' : '지식지침'}이 성공적으로 저장되었습니다.`
@@ -136,6 +147,14 @@ const GuidelineSettings = () => {
           </CardContent>
         </Card>
 
+        {/* Knowledge File Upload (only for knowledge tab) */}
+        {activeTab === 'knowledge' && (
+          <KnowledgeFileUpload 
+            uploadedFiles={uploadedFiles}
+            onFilesChange={saveFiles}
+          />
+        )}
+
         {/* Guideline Editor */}
         <Card>
           <CardHeader>
@@ -184,6 +203,7 @@ const GuidelineSettings = () => {
             </div>
             <p className="text-sm text-blue-700">
               설정한 지침은 AI 현장 메모 변환기, AI 규정 준수 도우미, AI 챗봇에서 자동으로 적용됩니다.
+              {activeTab === 'knowledge' && ' 업로드된 파일 내용도 함께 학습되어 더욱 정확한 답변이 가능합니다.'}
             </p>
           </CardContent>
         </Card>

@@ -3,11 +3,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import EquipmentCard from '@/components/EquipmentCard';
 import QuickStats from '@/components/QuickStats';
 
 const Index = () => {
+  const navigate = useNavigate();
+
   const equipmentData = [
     {
       id: 1,
@@ -87,6 +90,31 @@ const Index = () => {
                 <span className="text-sm">리포트</span>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Features */}
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-yellow-600" />
+              AI 스마트 기능
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
+                NEW
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-slate-700 mb-4">
+              Google Gemini AI로 현장 작업을 더욱 스마트하게!
+            </p>
+            <Button 
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => navigate('/ai')}
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI 기능 둘러보기
+            </Button>
           </CardContent>
         </Card>
 

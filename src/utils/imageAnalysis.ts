@@ -1,6 +1,4 @@
 
-import { pipeline } from '@huggingface/transformers';
-
 // 이미지를 base64로 변환하는 함수
 export const imageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -14,173 +12,200 @@ export const imageToBase64 = (file: File): Promise<string> => {
   });
 };
 
-// 이미지 분류 및 객체 탐지를 통한 설비 분석
+// 이미지 색상 분석을 통한 설비 상태 추정
+const analyzeImageColors = (canvas: HTMLCanvasElement): { rust: number; metal: number; corrosion: number; paint: number } => {
+  const ctx = canvas.getContext('2d')!;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  let rustPixels = 0;
+  let metalPixels = 0;
+  let corrosionPixels = 0;
+  let paintPixels = 0;
+  let totalPixels = 0;
+  
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    
+    totalPixels++;
+    
+    // 녹 색상 감지 (갈색, 주황색 계열)
+    if (r > 100 && r > g && r > b && g < 100) {
+      rustPixels++;
+    }
+    // 금속 색상 감지 (회색, 은색 계열)
+    else if (Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30 && r > 100) {
+      metalPixels++;
+    }
+    // 부식 색상 감지 (어두운 갈색, 검은색 계열)
+    else if (r < 80 && g < 60 && b < 50 && r > g && r > b) {
+      corrosionPixels++;
+    }
+    // 페인트 색상 감지 (밝은 색상)
+    else if (r > 150 || g > 150 || b > 150) {
+      paintPixels++;
+    }
+  }
+  
+  return {
+    rust: (rustPixels / totalPixels) * 100,
+    metal: (metalPixels / totalPixels) * 100,
+    corrosion: (corrosionPixels / totalPixels) * 100,
+    paint: (paintPixels / totalPixels) * 100
+  };
+};
+
+// 이미지 밝기 및 대비 분석
+const analyzeImageBrightness = (canvas: HTMLCanvasElement): { brightness: number; contrast: number } => {
+  const ctx = canvas.getContext('2d')!;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  let totalBrightness = 0;
+  let brightnessValues: number[] = [];
+  
+  for (let i = 0; i < data.length; i += 4) {
+    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    totalBrightness += brightness;
+    brightnessValues.push(brightness);
+  }
+  
+  const avgBrightness = totalBrightness / (data.length / 4);
+  
+  // 대비 계산 (표준편차)
+  const variance = brightnessValues.reduce((sum, brightness) => {
+    return sum + Math.pow(brightness - avgBrightness, 2);
+  }, 0) / brightnessValues.length;
+  
+  const contrast = Math.sqrt(variance);
+  
+  return {
+    brightness: avgBrightness,
+    contrast: contrast
+  };
+};
+
+// 실제 이미지 분석 수행
 export const analyzeEquipmentImage = async (imageFile: File) => {
   try {
-    console.log('이미지 분석 시작:', imageFile.name);
+    console.log('실제 이미지 분석 시작:', imageFile.name);
     
-    // 이미지를 base64로 변환
-    const imageData = await imageToBase64(imageFile);
+    // 이미지를 Canvas에 로드하여 픽셀 데이터 분석
+    const imageUrl = URL.createObjectURL(imageFile);
+    const img = new Image();
     
-    // 이미지 분류 파이프라인 생성
-    const classifier = await pipeline('image-classification', 'google/vit-base-patch16-224');
-    
-    // 이미지 분석 실행
-    const classificationResult = await classifier(imageData);
-    console.log('분류 결과:', classificationResult);
-    
-    // 분석 결과를 기반으로 설비 관련 정보 추출
-    return analyzeEquipmentFromClassification(classificationResult, imageFile.name);
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        
+        // 이미지 크기 조정 (분석 성능 향상)
+        const maxSize = 400;
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // 이미지 분석 실행
+        const colorAnalysis = analyzeImageColors(canvas);
+        const brightnessAnalysis = analyzeImageBrightness(canvas);
+        
+        console.log('색상 분석 결과:', colorAnalysis);
+        console.log('밝기 분석 결과:', brightnessAnalysis);
+        
+        // 분석 결과를 기반으로 설비 진단
+        const diagnosis = generateEquipmentDiagnosis(colorAnalysis, brightnessAnalysis, imageFile.name);
+        
+        URL.revokeObjectURL(imageUrl);
+        resolve(diagnosis);
+      };
+      
+      img.onerror = () => {
+        console.error('이미지 로드 실패');
+        URL.revokeObjectURL(imageUrl);
+        resolve(getDefaultAnalysis(imageFile.name));
+      };
+      
+      img.src = imageUrl;
+    });
     
   } catch (error) {
     console.error('이미지 분석 오류:', error);
-    // 분석 실패 시 기본 분석 결과 반환
     return getDefaultAnalysis(imageFile.name);
   }
 };
 
-// 분류 결과를 기반으로 설비 분석 수행
-const analyzeEquipmentFromClassification = (classificationResult: any[], fileName: string) => {
-  const topResult = classificationResult[0];
-  const confidence = topResult.score;
-  const label = topResult.label.toLowerCase();
+// 분석 결과를 기반으로 설비 진단 생성
+const generateEquipmentDiagnosis = (colorAnalysis: any, brightnessAnalysis: any, fileName: string) => {
+  const { rust, metal, corrosion, paint } = colorAnalysis;
+  const { brightness, contrast } = brightnessAnalysis;
   
-  console.log(`최상위 분류: ${label}, 신뢰도: ${confidence}`);
+  console.log(`진단 생성: 녹 ${rust.toFixed(1)}%, 금속 ${metal.toFixed(1)}%, 부식 ${corrosion.toFixed(1)}%, 페인트 ${paint.toFixed(1)}%`);
   
-  // 설비 관련 키워드 매칭
-  const equipmentKeywords = {
-    pipe: ['pipe', 'tube', 'conduit', 'pipeline'],
-    valve: ['valve', 'tap', 'faucet', 'cock'],
-    pump: ['pump', 'compressor', 'blower'],
-    motor: ['motor', 'engine', 'generator'],
-    tank: ['tank', 'vessel', 'container', 'reservoir'],
-    gauge: ['gauge', 'meter', 'indicator', 'dial'],
-    electrical: ['electrical', 'wire', 'cable', 'switch', 'panel'],
-    mechanical: ['gear', 'bearing', 'shaft', 'coupling']
-  };
+  // 상태 평가
+  const hasRustIssue = rust > 5;
+  const hasCorrosionIssue = corrosion > 3;
+  const hasPaintIssue = paint < 20 && rust > 2;
+  const isDarkImage = brightness < 100;
+  const hasLowContrast = contrast < 50;
   
-  let equipmentType = 'general';
-  let detectedKeywords: string[] = [];
+  let causes: string[] = [];
+  let symptoms: string[] = [];
+  let improvements: string[] = [];
   
-  // 키워드 매칭
-  for (const [type, keywords] of Object.entries(equipmentKeywords)) {
-    for (const keyword of keywords) {
-      if (label.includes(keyword)) {
-        equipmentType = type;
-        detectedKeywords.push(keyword);
-        break;
-      }
-    }
+  // 녹 문제 진단
+  if (hasRustIssue) {
+    causes.push(`이미지 분석 결과 ${rust.toFixed(1)}%의 녹 색상이 감지되어 산화 진행 확인`);
+    symptoms.push("설비 표면의 적갈색 변색 및 녹 발생 징후");
+    improvements.push("녹 제거 작업 후 방청 처리 및 보호 코팅 적용");
   }
   
-  // 신뢰도에 따른 분석 결과 생성
-  if (confidence > 0.7) {
-    return generateHighConfidenceAnalysis(equipmentType, label, detectedKeywords, fileName);
-  } else if (confidence > 0.3) {
-    return generateMediumConfidenceAnalysis(equipmentType, label, detectedKeywords, fileName);
-  } else {
-    return generateLowConfidenceAnalysis(fileName);
+  // 부식 문제 진단
+  if (hasCorrosionIssue) {
+    causes.push(`이미지에서 ${corrosion.toFixed(1)}%의 부식 색상 패턴이 감지됨`);
+    symptoms.push("설비 표면의 어두운 변색 및 부식 진행 흔적");
+    improvements.push("부식 부위 연마 및 교체, 부식 방지 처리 강화");
   }
-};
-
-// 높은 신뢰도 분석 결과
-const generateHighConfidenceAnalysis = (equipmentType: string, label: string, keywords: string[], fileName: string) => {
-  const analyses: Record<string, any> = {
-    pipe: {
-      causes: [
-        `${label} 유형의 배관에서 일반적으로 발생하는 연결부 노후화`,
-        "배관 재질과 유체 특성 간 부적합으로 인한 부식",
-        "설치 시 부적절한 지지대 설치로 인한 응력 집중"
-      ],
-      symptoms: [
-        "배관 표면에서 감지되는 부식 징후",
-        "연결부 주변 변색 및 누수 흔적",
-        "배관 진동 또는 비정상적인 소음 발생"
-      ],
-      improvements: [
-        "해당 배관 재질에 적합한 방식 처리 실시",
-        "연결부 실링재 교체 및 조임 토크 재조정",
-        "배관 지지대 보강 및 진동 저감 장치 설치"
-      ]
-    },
-    valve: {
-      causes: [
-        `${label} 밸브의 내부 시트 마모로 인한 밀봉성 저하`,
-        "밸브 구동부 윤활유 부족으로 인한 작동 불량",
-        "유체 내 이물질로 인한 밸브 내부 손상"
-      ],
-      symptoms: [
-        "밸브 조작 시 과도한 토크 필요",
-        "밸브 시트부에서 미량 누설 발견",
-        "밸브 작동 시 비정상적인 진동 또는 소음"
-      ],
-      improvements: [
-        "밸브 내부 청소 및 시트 연마 작업",
-        "구동부 윤활유 교체 및 정기 급유 시행",
-        "상류측 스트레이너 설치로 이물질 유입 방지"
-      ]
-    },
-    default: {
-      causes: [
-        `업로드된 이미지(${fileName})에서 감지된 설비의 일반적인 열화 현상`,
-        "환경 조건 및 운전 조건에 따른 자연적 노화",
-        "정기점검 주기 부족으로 인한 예방정비 미흡"
-      ],
-      symptoms: [
-        "설비 외관상 노후화 징후 확인",
-        "운전 성능 저하 또는 효율 감소",
-        "비정상적인 소음, 진동, 온도 상승"
-      ],
-      improvements: [
-        "설비별 맞춤형 정밀점검 실시",
-        "예방정비 주기 단축 및 체계적 관리",
-        "설비 교체 시기 검토 및 예산 계획 수립"
-      ]
-    }
-  };
   
-  return analyses[equipmentType] || analyses.default;
-};
-
-// 중간 신뢰도 분석 결과
-const generateMediumConfidenceAnalysis = (equipmentType: string, label: string, keywords: string[], fileName: string) => {
+  // 도장 상태 문제
+  if (hasPaintIssue) {
+    causes.push(`페인트 피복률 ${paint.toFixed(1)}%로 도장막 손상 추정`);
+    symptoms.push("도장막 박리, 벗겨짐 또는 변색 현상");
+    improvements.push("기존 도장 제거 후 신규 방식 도장 시공");
+  }
+  
+  // 일반적인 노후화
+  if (!hasRustIssue && !hasCorrosionIssue && metal > 30) {
+    causes.push("금속 표면이 주로 감지되어 일반적인 설비 노후화 추정");
+    symptoms.push("설비 외관상 자연적인 노화 현상");
+    improvements.push("정기적인 청소 및 예방 정비 시행");
+  }
+  
+  // 이미지 품질 관련 보완
+  if (isDarkImage) {
+    symptoms.push("이미지가 어두워 정밀 진단에 제약이 있음");
+    improvements.push("밝은 조명 하에서 고화질 재촬영 권장");
+  }
+  
+  if (hasLowContrast) {
+    symptoms.push("이미지 대비가 낮아 세부 결함 식별이 어려움");
+    improvements.push("다각도 촬영 및 접근 촬영으로 세부 확인");
+  }
+  
+  // 기본값 설정 (아무 문제가 감지되지 않은 경우)
+  if (causes.length === 0) {
+    causes.push("이미지 분석 결과 특별한 이상 징후는 감지되지 않음");
+    symptoms.push("육안상 양호한 상태로 판단됨");
+    improvements.push("현재 상태 유지를 위한 정기 점검 지속");
+  }
+  
   return {
-    causes: [
-      `이미지 분석 결과 ${label}와 유사한 설비로 추정되는 장비의 일반적 열화`,
-      "설비 운전환경 및 사용 연수를 고려한 예상 문제점",
-      "해당 설비 유형에서 빈번히 발생하는 공통 이슈"
-    ],
-    symptoms: [
-      "외관 검사를 통해 확인 가능한 이상 징후",
-      "운전 데이터 모니터링 필요 항목 존재",
-      "정밀 진단이 필요한 잠재적 문제 요소"
-    ],
-    improvements: [
-      "전문가 육안 검사 및 정밀 진단 실시",
-      "설비별 특성을 고려한 맞춤형 점검 시행",
-      "운전 데이터 분석을 통한 상태 평가"
-    ]
-  };
-};
-
-// 낮은 신뢰도 분석 결과
-const generateLowConfidenceAnalysis = (fileName: string) => {
-  return {
-    causes: [
-      "이미지 품질 또는 각도로 인한 정확한 설비 식별 한계",
-      "일반적인 기계설비에서 발생하는 공통적 문제 요소",
-      "추가적인 정보 수집이 필요한 불확실 요소"
-    ],
-    symptoms: [
-      "시각적 확인이 어려운 내부적 문제 가능성",
-      "다각도 촬영을 통한 추가 분석 필요",
-      "운전 상황별 세부 관찰 요구"
-    ],
-    improvements: [
-      "고해상도 다각도 사진 재촬영 실시",
-      "설비 명판 및 도면 정보 추가 수집",
-      "현장 전문가 직접 점검 의뢰"
-    ]
+    causes,
+    symptoms,
+    improvements
   };
 };
 
@@ -190,17 +215,17 @@ const getDefaultAnalysis = (fileName: string) => {
     causes: [
       "이미지 분석 중 기술적 한계로 인한 일반적 설비 진단",
       "업로드된 이미지의 해상도 또는 촬영 조건 제약",
-      "AI 모델의 학습 데이터 범위를 벗어난 특수 설비"
+      "정확한 진단을 위해서는 추가 정보 필요"
     ],
     symptoms: [
-      "정확한 진단을 위해서는 추가 정보 필요",
-      "설비 상태에 대한 기본적 외관 검사 권장",
-      "전문가 육안 검사를 통한 세부 확인 필요"
+      "시각적 확인이 어려운 내부적 문제 가능성",
+      "다각도 촬영을 통한 추가 분석 필요",
+      "설비 상세 정보 확인 권장"
     ],
     improvements: [
-      "명확한 설비 사진 재촬영 (명판, 전체, 세부 부위)",
-      "설비 제원 및 운전 이력 정보 제공",
-      "현장 전문 엔지니어 점검 의뢰"
+      "고해상도 다각도 사진 재촬영 실시",
+      "설비 명판 및 도면 정보 추가 수집",
+      "현장 전문가 직접 점검 의뢰"
     ]
   };
 };

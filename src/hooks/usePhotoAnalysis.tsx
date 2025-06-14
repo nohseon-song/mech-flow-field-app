@@ -37,6 +37,8 @@ export const usePhotoAnalysis = () => {
       }
       
       setSelectedFile(file);
+      // 이전 분석 결과 초기화
+      setAnalysisResult(null);
       console.log('선택된 파일:', file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
     }
   };
@@ -52,9 +54,14 @@ export const usePhotoAnalysis = () => {
     }
 
     setIsAnalyzing(true);
-    console.log('사진 분석 시작:', selectedFile.name);
+    console.log('실제 이미지 분석 시작:', selectedFile.name);
 
     try {
+      toast({
+        title: "분석 진행 중",
+        description: "이미지를 픽셀 단위로 분석하고 있습니다..."
+      });
+
       // 실제 이미지 분석 수행
       const baseAnalysis = await analyzeEquipmentImage(selectedFile);
       
@@ -71,10 +78,10 @@ export const usePhotoAnalysis = () => {
 
       toast({
         title: "분석 완료",
-        description: `${selectedFile.name} 이미지 분석이 완료되었습니다.`
+        description: `${selectedFile.name} 실제 이미지 분석이 완료되었습니다.`
       });
       
-      console.log('분석 완료:', enhancedAnalysis);
+      console.log('실제 분석 완료:', enhancedAnalysis);
       
     } catch (error) {
       console.error('사진 분석 오류:', error);
@@ -91,14 +98,14 @@ export const usePhotoAnalysis = () => {
   // 운용지침 기반 개선방안 강화
   const enhanceWithOperationalGuidelines = (improvements: string[]) => {
     return improvements.map(improvement => {
-      return `${improvement} (운용지침 기준: 작업자 안전 확보 후 시행)`;
+      return `${improvement} (운용지침: 작업자 안전 확보 및 운전 중단 최소화 원칙 적용)`;
     });
   };
 
   // 지식지침 기반 개선방안 강화
   const enhanceWithKnowledgeGuidelines = (improvements: string[]) => {
     return improvements.map(improvement => {
-      return `${improvement} (관련법규: 기계설비법 제15조, 산업안전보건법 제36조 준수)`;
+      return `${improvement} (관련법규: 기계설비법 제15조, 산업안전보건법 제36조 준수 및 기술기준 적용)`;
     });
   };
 

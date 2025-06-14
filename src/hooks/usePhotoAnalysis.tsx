@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { analyzeEquipmentImage } from '@/utils/imageAnalysis';
 
 export const usePhotoAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,7 +16,28 @@ export const usePhotoAnalysis = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // 이미지 파일인지 확인
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "파일 형식 오류",
+          description: "이미지 파일만 업로드 가능합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // 파일 크기 확인 (10MB 제한)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "파일 크기 초과",
+          description: "10MB 이하의 이미지 파일을 업로드해주세요.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       setSelectedFile(file);
+      console.log('선택된 파일:', file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
     }
   };
 
@@ -30,41 +52,54 @@ export const usePhotoAnalysis = () => {
     }
 
     setIsAnalyzing(true);
+    console.log('사진 분석 시작:', selectedFile.name);
 
-    // Google Gemini Vision API 호출 시뮬레이션
-    setTimeout(() => {
-      const mockAnalysis = {
-        causes: [
-          "배관 연결부 노후화로 인한 실링 불량",
-          "과도한 진동으로 인한 볼트 풀림",
-          "온도 변화에 따른 열팽창/수축"
-        ],
-        symptoms: [
-          "배관 연결부에서 미량 누수 발견",
-          "주변 바닥에 물방울 흔적 확인",
-          "연결부 주변 녹 발생 징후"
-        ],
-        improvements: guideline === 'operation' ? [
-          "연결부 조임 토크 재점검 (권장: 50Nm)",
-          "실링재 교체 후 누수 재확인",
-          "정기 점검 주기를 월 1회로 단축",
-          "진동 저감을 위한 댐퍼 설치 검토"
-        ] : [
-          "기계설비법 제15조에 따른 성능점검 실시",
-          "KS B 0251 배관 접합 기준 준수",
-          "산업안전보건법 제36조 정기점검 이행",
-          "설비 운전 매뉴얼 개정 필요"
-        ]
+    try {
+      // 실제 이미지 분석 수행
+      const baseAnalysis = await analyzeEquipmentImage(selectedFile);
+      
+      // 지침에 따른 개선방안 조정
+      const enhancedAnalysis = {
+        ...baseAnalysis,
+        improvements: guideline === 'operation' 
+          ? enhanceWithOperationalGuidelines(baseAnalysis.improvements)
+          : enhanceWithKnowledgeGuidelines(baseAnalysis.improvements)
       };
 
-      setAnalysisResult(mockAnalysis);
+      setAnalysisResult(enhancedAnalysis);
       setIsAnalyzing(false);
 
       toast({
         title: "분석 완료",
-        description: "사진 분석이 완료되었습니다."
+        description: `${selectedFile.name} 이미지 분석이 완료되었습니다.`
       });
-    }, 3000);
+      
+      console.log('분석 완료:', enhancedAnalysis);
+      
+    } catch (error) {
+      console.error('사진 분석 오류:', error);
+      setIsAnalyzing(false);
+      
+      toast({
+        title: "분석 실패",
+        description: "이미지 분석 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // 운용지침 기반 개선방안 강화
+  const enhanceWithOperationalGuidelines = (improvements: string[]) => {
+    return improvements.map(improvement => {
+      return `${improvement} (운용지침 기준: 작업자 안전 확보 후 시행)`;
+    });
+  };
+
+  // 지식지침 기반 개선방안 강화
+  const enhanceWithKnowledgeGuidelines = (improvements: string[]) => {
+    return improvements.map(improvement => {
+      return `${improvement} (관련법규: 기계설비법 제15조, 산업안전보건법 제36조 준수)`;
+    });
   };
 
   return {

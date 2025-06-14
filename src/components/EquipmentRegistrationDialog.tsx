@@ -213,143 +213,157 @@ const EquipmentRegistrationDialog = ({
         
         <div className="space-y-6">
           {/* 기본 정보 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="equipmentType">설비 종류</Label>
-              <Select 
-                value={formData.equipmentType} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, equipmentType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="설비 종류를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {equipmentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="equipmentType">설비 종류</Label>
+                <Select 
+                  value={formData.equipmentType} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, equipmentType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="설비 종류를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {equipmentTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="name">설비명 *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="예: 보일러 #1"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">설비명 *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="예: 보일러 #1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="location">설치위치 *</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="예: 지하 1층 기계실"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="location">설치위치 *</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="예: 지하 1층 기계실"
-              />
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="inspectionDate">점검일자</Label>
+                <Input
+                  id="inspectionDate"
+                  type="date"
+                  value={formData.inspectionDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, inspectionDate: e.target.value }))}
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="inspectionDate">점검일자</Label>
-              <Input
-                id="inspectionDate"
-                type="date"
-                value={formData.inspectionDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, inspectionDate: e.target.value }))}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="manufacturer">제조회사</Label>
+                <Input
+                  id="manufacturer"
+                  value={formData.manufacturer}
+                  onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
+                  placeholder="제조회사"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="modelNumber">모델번호</Label>
+                <Input
+                  id="modelNumber"
+                  value={formData.modelNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, modelNumber: e.target.value }))}
+                  placeholder="모델번호"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="manufacturer">제조회사</Label>
-              <Input
-                id="manufacturer"
-                value={formData.manufacturer}
-                onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
-                placeholder="제조회사"
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="coolingCapacity">냉동능력(kW/usRT)</Label>
+                <Input
+                  id="coolingCapacity"
+                  value={formData.coolingCapacity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, coolingCapacity: e.target.value }))}
+                  placeholder="냉동능력"
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="modelNumber">모델번호</Label>
-              <Input
-                id="modelNumber"
-                value={formData.modelNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, modelNumber: e.target.value }))}
-                placeholder="모델번호"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="coolingCapacity">냉동능력(kW/usRT)</Label>
-              <Input
-                id="coolingCapacity"
-                value={formData.coolingCapacity}
-                onChange={(e) => setFormData(prev => ({ ...prev, coolingCapacity: e.target.value }))}
-                placeholder="냉동능력"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="currentVoltage">전류/전압(A/V)</Label>
-              <Input
-                id="currentVoltage"
-                value={formData.currentVoltage}
-                onChange={(e) => setFormData(prev => ({ ...prev, currentVoltage: e.target.value }))}
-                placeholder="전류/전압"
-              />
+              <div>
+                <Label htmlFor="currentVoltage">전류/전압(A/V)</Label>
+                <Input
+                  id="currentVoltage"
+                  value={formData.currentVoltage}
+                  onChange={(e) => setFormData(prev => ({ ...prev, currentVoltage: e.target.value }))}
+                  placeholder="전류/전압"
+                />
+              </div>
             </div>
           </div>
 
           {/* 압축기 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">압축기</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>기동방식</Label>
-                <Select
-                  value={formData.operatingMethod}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, operatingMethod: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="기동방식을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="압축식">압축식</SelectItem>
-                    <SelectItem value="스크롤식">스크롤식</SelectItem>
-                    <SelectItem value="왕복동식">왕복동식</SelectItem>
-                    <SelectItem value="기타">기타</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>기동방식</Label>
+                  <Select
+                    value={formData.operatingMethod}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, operatingMethod: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="기동방식을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="압축식">압축식</SelectItem>
+                      <SelectItem value="스크롤식">스크롤식</SelectItem>
+                      <SelectItem value="왕복동식">왕복동식</SelectItem>
+                      <SelectItem value="기타">기타</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div>
-                <Label>출력(KW)</Label>
-                <Input
-                  value={formData.capacity}
-                  onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
-                  placeholder="출력 (kW)"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>출력(KW)</Label>
+                  <Input
+                    value={formData.capacity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                    placeholder="출력 (kW)"
+                  />
+                </div>
 
-              <div>
-                <Label>윤활유(충전량) Level</Label>
-                <Select
-                  value={formData.lubricantLevel}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, lubricantLevel: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="레벨을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="상">상</SelectItem>
-                    <SelectItem value="중">중</SelectItem>
-                    <SelectItem value="하">하</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <Label>윤활유(충전량) Level</Label>
+                  <Select
+                    value={formData.lubricantLevel}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, lubricantLevel: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="레벨을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="상">상</SelectItem>
+                      <SelectItem value="중">중</SelectItem>
+                      <SelectItem value="하">하</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -357,54 +371,66 @@ const EquipmentRegistrationDialog = ({
           {/* 증발기 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">증발기</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>냉수(브라인) 입·출구온도</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.chilledWaterInletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletTemp: e.target.value }))}
-                    placeholder="입구온도"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">℃</span>
-                  <span className="flex items-center text-sm text-gray-500">/</span>
-                  <Input
-                    value={formData.chilledWaterOutletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletTemp: e.target.value }))}
-                    placeholder="출구온도"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">℃</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉수(브라인) 입·출구온도</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.chilledWaterInletTemp}
+                        onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletTemp: e.target.value }))}
+                        placeholder="입구온도"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[24px]">℃</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.chilledWaterOutletTemp}
+                        onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletTemp: e.target.value }))}
+                        placeholder="출구온도"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[24px]">℃</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>냉수(브라인) 입·출구압력</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.chilledWaterInletPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletPressure: e.target.value }))}
-                    placeholder="입구압력"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">MPa</span>
-                  <span className="flex items-center text-sm text-gray-500">/</span>
-                  <Input
-                    value={formData.chilledWaterOutletPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletPressure: e.target.value }))}
-                    placeholder="출구압력"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">MPa</span>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉수(브라인) 입·출구압력</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.chilledWaterInletPressure}
+                        onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletPressure: e.target.value }))}
+                        placeholder="입구압력"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[36px]">MPa</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.chilledWaterOutletPressure}
+                        onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletPressure: e.target.value }))}
+                        placeholder="출구압력"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[36px]">MPa</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>냉수(브라인) 순환량</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.chilledWaterFlowRate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterFlowRate: e.target.value }))}
-                    placeholder="순환량"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">m³/h</span>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉수(브라인) 순환량</Label>
+                  <div className="flex gap-2 max-w-md">
+                    <Input
+                      value={formData.chilledWaterFlowRate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterFlowRate: e.target.value }))}
+                      placeholder="순환량"
+                    />
+                    <span className="flex items-center text-sm text-gray-500 min-w-[48px]">m³/h</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -413,54 +439,66 @@ const EquipmentRegistrationDialog = ({
           {/* 응축기 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">응축기</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>냉각수 입·출구온도</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.coolingWaterInletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletTemp: e.target.value }))}
-                    placeholder="입구온도"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">℃</span>
-                  <span className="flex items-center text-sm text-gray-500">/</span>
-                  <Input
-                    value={formData.coolingWaterOutletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletTemp: e.target.value }))}
-                    placeholder="출구온도"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">℃</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉각수 입·출구온도</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.coolingWaterInletTemp}
+                        onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletTemp: e.target.value }))}
+                        placeholder="입구온도"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[24px]">℃</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.coolingWaterOutletTemp}
+                        onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletTemp: e.target.value }))}
+                        placeholder="출구온도"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[24px]">℃</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>냉각수 입·출구압력</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.coolingWaterInletPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletPressure: e.target.value }))}
-                    placeholder="입구압력"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">MPa</span>
-                  <span className="flex items-center text-sm text-gray-500">/</span>
-                  <Input
-                    value={formData.coolingWaterOutletPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletPressure: e.target.value }))}
-                    placeholder="출구압력"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">MPa</span>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉각수 입·출구압력</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.coolingWaterInletPressure}
+                        onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletPressure: e.target.value }))}
+                        placeholder="입구압력"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[36px]">MPa</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.coolingWaterOutletPressure}
+                        onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletPressure: e.target.value }))}
+                        placeholder="출구압력"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 min-w-[36px]">MPa</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>냉각수 순환량</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.coolingWaterFlowRate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterFlowRate: e.target.value }))}
-                    placeholder="순환량"
-                  />
-                  <span className="flex items-center text-sm text-gray-500">m³/h</span>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label>냉각수 순환량</Label>
+                  <div className="flex gap-2 max-w-md">
+                    <Input
+                      value={formData.coolingWaterFlowRate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterFlowRate: e.target.value }))}
+                      placeholder="순환량"
+                    />
+                    <span className="flex items-center text-sm text-gray-500 min-w-[48px]">m³/h</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -469,7 +507,7 @@ const EquipmentRegistrationDialog = ({
           {/* 냉매 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">냉매</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label>종류</Label>
                 <Input
@@ -484,16 +522,16 @@ const EquipmentRegistrationDialog = ({
           {/* 안전밸브 설정 압력 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">안전밸브 설정 압력</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label>압력</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-w-md">
                   <Input
                     value={formData.safetyValvePressure}
                     onChange={(e) => setFormData(prev => ({ ...prev, safetyValvePressure: e.target.value }))}
                     placeholder="압력"
                   />
-                  <span className="flex items-center text-sm text-gray-500">MPa</span>
+                  <span className="flex items-center text-sm text-gray-500 min-w-[36px]">MPa</span>
                 </div>
               </div>
             </div>
@@ -502,16 +540,16 @@ const EquipmentRegistrationDialog = ({
           {/* 소음 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">소음</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label>소음</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-w-md">
                   <Input
                     value={formData.noise}
                     onChange={(e) => setFormData(prev => ({ ...prev, noise: e.target.value }))}
                     placeholder="소음"
                   />
-                  <span className="flex items-center text-sm text-gray-500">dB</span>
+                  <span className="flex items-center text-sm text-gray-500 min-w-[24px]">dB</span>
                 </div>
               </div>
             </div>
@@ -520,7 +558,7 @@ const EquipmentRegistrationDialog = ({
           {/* 보호장치 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">보호장치</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label>보호장치</Label>
                 <Input

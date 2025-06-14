@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,35 +68,13 @@ const Index = () => {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-blue-600" />
-              빠른 작업
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Button className="h-16 flex flex-col gap-1 bg-blue-600 hover:bg-blue-700">
-                <ClipboardCheck className="h-6 w-6" />
-                <span className="text-sm">새 점검</span>
-              </Button>
-              <Button variant="outline" className="h-16 flex flex-col gap-1">
-                <BarChart3 className="h-6 w-6" />
-                <span className="text-sm">리포트</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* AI Features */}
         <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-600" />
               <span className="font-bold">AI 스마트 기능</span>
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs font-semibold">
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs font-extrabold">
                 NEW
               </Badge>
             </CardTitle>
@@ -160,3 +139,4 @@ const Index = () => {
 };
 
 export default Index;
+

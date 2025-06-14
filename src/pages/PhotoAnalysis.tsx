@@ -1,15 +1,12 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Camera, Sparkles } from 'lucide-react';
+import { ArrowLeft, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePhotoAnalysis } from '@/hooks/usePhotoAnalysis';
 import { GuidelineSelector } from '@/components/memo/GuidelineSelector';
 import { PhotoUpload } from '@/components/photo/PhotoUpload';
 import { AnalysisResults } from '@/components/photo/AnalysisResults';
-import { usePhotoAnalysis } from '@/hooks/usePhotoAnalysis';
 
 const PhotoAnalysis = () => {
   const navigate = useNavigate();
@@ -34,23 +31,21 @@ const PhotoAnalysis = () => {
             </Button>
             <div>
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Camera className="h-6 w-6 text-orange-600" />
-                AI 사진 분석
+                <Camera className="h-6 w-6 text-green-600" />
+                AI 설비 사진 분석
               </h1>
-              <p className="text-sm text-slate-600">설비 사진 원인/징후/개선방안 분석</p>
+              <p className="text-sm text-slate-600">사진으로 설비 상태 진단</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Guideline Selection */}
         <GuidelineSelector 
-          guideline={guideline}
-          onGuidelineChange={setGuideline}
+          guideline={guideline} 
+          onGuidelineChange={setGuideline} 
         />
-
-        {/* Upload Section */}
+        
         <PhotoUpload
           selectedFile={selectedFile}
           onFileSelect={handleFileSelect}
@@ -58,13 +53,10 @@ const PhotoAnalysis = () => {
           isAnalyzing={isAnalyzing}
         />
 
-        {/* Analysis Results */}
-        {analysisResult && (
-          <AnalysisResults 
-            analysisResult={analysisResult}
-            guideline={guideline}
-          />
-        )}
+        <AnalysisResults 
+          analysisResult={analysisResult}
+          guideline={guideline}
+        />
       </div>
     </div>
   );

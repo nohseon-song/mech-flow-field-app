@@ -1,55 +1,72 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, FileText, Camera, BookOpen, MessageCircle, ArrowLeft, ImageIcon, Settings } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, FileText, Camera, BookOpen, MessageCircle, Settings, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
   const navigate = useNavigate();
 
-  const aiFeatures = [
+  const features = [
     {
-      id: 1,
-      title: "AI 현장 메모 변환기",
-      description: "현장에서 급하게 작성한 메모를 입력하면, AI가 보고서에 바로 사용할 수 있는 구조화된 데이터로 자동 변환해 줍니다.",
+      title: 'AI 현장 메모 변환기',
+      description: '현장 메모를 구조화된 보고서로 자동 변환',
       icon: FileText,
-      color: "bg-blue-500",
-      route: "/ai/memo-converter"
+      path: '/ai/memo-converter',
+      color: 'blue'
     },
     {
-      id: 2,
-      title: "AI 명판 OCR",
-      description: "설비 명판 사진을 업로드하면 AI가 텍스트를 인식해 자동으로 필드를 채워줍니다.",
+      title: 'AI 설비 사진 분석',
+      description: '설비 사진으로 문제점과 개선사항 도출',
       icon: Camera,
-      color: "bg-green-500",
-      route: "/ai/nameplate-ocr"
+      path: '/ai/photo-analysis',
+      color: 'green'
     },
     {
-      id: 3,
-      title: "AI 사진 분석",
-      description: "설비 사진을 업로드하면 AI가 원인, 징후, 개선방안을 자동으로 분석해 줍니다.",
-      icon: ImageIcon,
-      color: "bg-orange-500",
-      route: "/ai/photo-analysis"
-    },
-    {
-      id: 4,
-      title: "AI 규정 준수 도우미",
-      description: "복잡한 기계설비 법규가 궁금하신가요? 질문을 입력하면 AI가 「기계설비법」과 표준 매뉴얼에 근거하여 전문가처럼 답변해 드립니다.",
+      title: 'AI 규정 준수 도우미',
+      description: '기계설비법 전문 상담 및 규정 해석',
       icon: BookOpen,
-      color: "bg-purple-500",
-      route: "/ai/regulation-helper"
+      path: '/ai/regulation-helper',
+      color: 'purple'
     },
     {
-      id: 5,
-      title: "AI 챗봇 (CheckMate 전문가)",
-      description: "플랫폼 사용법, 기계설비 법규, 점검 노하우 등 무엇이든 물어보세요! AI 전문가가 24시간 답변해 드립니다.",
+      title: 'AI 챗봇',
+      description: '24시간 설비 관련 질문 답변',
       icon: MessageCircle,
-      color: "bg-teal-500",
-      route: "/ai/chatbot"
+      path: '/ai/chatbot',
+      color: 'orange'
+    },
+    {
+      title: 'AI 지침 설정',
+      description: 'AI 응답 지침 및 지식 파일 관리',
+      icon: Settings,
+      path: '/ai/guidelines',
+      color: 'gray'
     }
   ];
+
+  const getColorClasses = (color: string) => {
+    const colors = {
+      blue: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+      green: 'bg-green-50 border-green-200 hover:bg-green-100',
+      purple: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
+      orange: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
+      gray: 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+    };
+    return colors[color as keyof typeof colors] || colors.blue;
+  };
+
+  const getIconColor = (color: string) => {
+    const colors = {
+      blue: 'text-blue-600',
+      green: 'text-green-600',
+      purple: 'text-purple-600',
+      orange: 'text-orange-600',
+      gray: 'text-gray-600'
+    };
+    return colors[color as keyof typeof colors] || colors.blue;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -60,64 +77,52 @@ const AIFeatures = () => {
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex-1">
+            <div>
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-yellow-500" />
-                AI 기능
+                <Zap className="h-6 w-6 text-yellow-600" />
+                AI 스마트 기능
               </h1>
-              <p className="text-sm text-slate-600">AI 기반 스마트 점검 도구</p>
+              <p className="text-sm text-slate-600">인공지능 기반 스마트 관리</p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/ai/guidelines')}
-              className="flex items-center gap-1"
-            >
-              <Settings className="h-4 w-4" />
-              지침설정
-            </Button>
           </div>
         </div>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-4">
-        {/* AI Features Grid */}
-        {aiFeatures.map((feature) => (
-          <Card key={feature.id} className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(feature.route)}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${feature.color} bg-opacity-10`}>
-                    <feature.icon className={`h-6 w-6 ${feature.color.replace('bg-', 'text-')}`} />
-                  </div>
-                  <span className="text-slate-800">{feature.title}</span>
-                </div>
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-600 mb-4">{feature.description}</p>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                시작하기
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        {features.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Card 
+              key={feature.path}
+              className={`${getColorClasses(feature.color)} border cursor-pointer transition-all duration-200 hover:shadow-md`}
+              onClick={() => navigate(feature.path)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-3">
+                  <Icon className={`h-6 w-6 ${getIconColor(feature.color)}`} />
+                  {feature.title}
+                </CardTitle>
+                <CardDescription className="text-slate-600">
+                  {feature.description}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          );
+        })}
 
-        {/* Info Card */}
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-800">Google Gemini AI 기반</h3>
-            </div>
-            <p className="text-sm text-blue-700">
-              최신 AI 기술을 활용하여 현장 작업의 효율성을 극대화합니다.
-            </p>
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg text-center text-orange-800">
+              🎯 AI 기능 활용 팁
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="text-sm text-orange-700 space-y-2">
+              <li>• 정확한 결과를 위해 구체적인 정보를 입력하세요</li>
+              <li>• 지침 설정에서 조직 맞춤형 가이드라인을 설정할 수 있습니다</li>
+              <li>• 사진 분석 시 고화질 이미지를 업로드하세요</li>
+              <li>• 규정 관련 질문은 구체적인 상황을 명시해주세요</li>
+            </ul>
           </CardContent>
         </Card>
       </div>

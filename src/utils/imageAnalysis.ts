@@ -1,4 +1,3 @@
-
 // 이미지를 base64로 변환하는 함수
 export const imageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -12,8 +11,27 @@ export const imageToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// Type definitions for image analysis results
+export interface AnalysisResult {
+  causes: string[];
+  symptoms: string[];
+  improvements: string[];
+}
+
+interface ColorAnalysis {
+  rust: number;
+  metal: number;
+  corrosion: number;
+  paint: number;
+}
+
+interface BrightnessAnalysis {
+  brightness: number;
+  contrast: number;
+}
+
 // 이미지 색상 분석을 통한 설비 상태 추정
-const analyzeImageColors = (canvas: HTMLCanvasElement): { rust: number; metal: number; corrosion: number; paint: number } => {
+const analyzeImageColors = (canvas: HTMLCanvasElement): ColorAnalysis => {
   const ctx = canvas.getContext('2d')!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -58,7 +76,7 @@ const analyzeImageColors = (canvas: HTMLCanvasElement): { rust: number; metal: n
 };
 
 // 이미지 밝기 및 대비 분석
-const analyzeImageBrightness = (canvas: HTMLCanvasElement): { brightness: number; contrast: number } => {
+const analyzeImageBrightness = (canvas: HTMLCanvasElement): BrightnessAnalysis => {
   const ctx = canvas.getContext('2d')!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -88,7 +106,7 @@ const analyzeImageBrightness = (canvas: HTMLCanvasElement): { brightness: number
 };
 
 // 실제 이미지 분석 수행
-export const analyzeEquipmentImage = async (imageFile: File) => {
+export const analyzeEquipmentImage = async (imageFile: File): Promise<AnalysisResult> => {
   try {
     console.log('실제 이미지 분석 시작:', imageFile.name);
     
@@ -96,7 +114,7 @@ export const analyzeEquipmentImage = async (imageFile: File) => {
     const imageUrl = URL.createObjectURL(imageFile);
     const img = new Image();
     
-    return new Promise((resolve) => {
+    return new Promise<AnalysisResult>((resolve, reject) => {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d')!;
@@ -139,7 +157,7 @@ export const analyzeEquipmentImage = async (imageFile: File) => {
 };
 
 // 분석 결과를 기반으로 설비 진단 생성
-const generateEquipmentDiagnosis = (colorAnalysis: any, brightnessAnalysis: any, fileName: string) => {
+const generateEquipmentDiagnosis = (colorAnalysis: ColorAnalysis, brightnessAnalysis: BrightnessAnalysis, fileName: string): AnalysisResult => {
   const { rust, metal, corrosion, paint } = colorAnalysis;
   const { brightness, contrast } = brightnessAnalysis;
   
@@ -210,7 +228,7 @@ const generateEquipmentDiagnosis = (colorAnalysis: any, brightnessAnalysis: any,
 };
 
 // 기본 분석 결과 (분석 실패 시)
-const getDefaultAnalysis = (fileName: string) => {
+const getDefaultAnalysis = (fileName: string): AnalysisResult => {
   return {
     causes: [
       "이미지 분석 중 기술적 한계로 인한 일반적 설비 진단",

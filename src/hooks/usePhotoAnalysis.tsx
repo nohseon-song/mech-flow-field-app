@@ -1,17 +1,12 @@
-
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { analyzeEquipmentImage } from '@/utils/imageAnalysis';
+import { analyzeEquipmentImage, type AnalysisResult } from '@/utils/imageAnalysis';
 
 export const usePhotoAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [guideline, setGuideline] = useState('operation');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<{
-    causes: string[];
-    symptoms: string[];
-    improvements: string[];
-  } | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -66,7 +61,7 @@ export const usePhotoAnalysis = () => {
       const baseAnalysis = await analyzeEquipmentImage(selectedFile);
       
       // 지침에 따른 개선방안 조정
-      const enhancedAnalysis = {
+      const enhancedAnalysis: AnalysisResult = {
         ...baseAnalysis,
         improvements: guideline === 'operation' 
           ? enhanceWithOperationalGuidelines(baseAnalysis.improvements)

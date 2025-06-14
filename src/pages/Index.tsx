@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EquipmentCard from '@/components/EquipmentCard';
-import QuickStats from '@/components/QuickStats';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -67,9 +67,6 @@ const Index = () => {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Quick Stats */}
-        <QuickStats />
-
         {/* Quick Actions */}
         <Card>
           <CardHeader>

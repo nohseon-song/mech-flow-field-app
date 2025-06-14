@@ -56,7 +56,7 @@ const EquipmentRegistrationDialog = ({
     // 압축기 관련
     operatingMethod: '',
     capacity: '',
-    capacityLevel: '',
+    lubricantLevel: '',
     dischargePressure: '',
     dischargePressureUnit: 'bar',
     suctionPressure: '',
@@ -89,7 +89,7 @@ const EquipmentRegistrationDialog = ({
         inspectionDate: editingEquipment.inspectionDate || '',
         operatingMethod: editingEquipment.operatingMethod || '',
         capacity: editingEquipment.capacity || '',
-        capacityLevel: editingEquipment.capacityLevel || '',
+        lubricantLevel: editingEquipment.lubricantLevel || '',
         dischargePressure: editingEquipment.dischargePressure || '',
         dischargePressureUnit: editingEquipment.dischargePressureUnit || 'bar',
         suctionPressure: editingEquipment.suctionPressure || '',
@@ -117,7 +117,7 @@ const EquipmentRegistrationDialog = ({
         inspectionDate: '',
         operatingMethod: '',
         capacity: '',
-        capacityLevel: '',
+        lubricantLevel: '',
         dischargePressure: '',
         dischargePressureUnit: 'bar',
         suctionPressure: '',
@@ -256,12 +256,20 @@ const EquipmentRegistrationDialog = ({
               </div>
 
               <div>
-                <Label>운용율(용량부)</Label>
-                <Input
-                  value={formData.capacityLevel}
-                  onChange={(e) => setFormData(prev => ({ ...prev, capacityLevel: e.target.value }))}
-                  placeholder="운용율 (level)"
-                />
+                <Label>윤활유(충전량) Level</Label>
+                <Select
+                  value={formData.lubricantLevel}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, lubricantLevel: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="레벨을 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="상">상</SelectItem>
+                    <SelectItem value="중">중</SelectItem>
+                    <SelectItem value="하">하</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

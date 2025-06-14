@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +12,7 @@ import { KnowledgeFileUpload } from '@/components/guidelines/KnowledgeFileUpload
 const GuidelineSettings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { uploadedFiles } = useKnowledgeFiles();
+  const { uploadedFiles, saveFiles } = useKnowledgeFiles();
   
   const [operationGuideline, setOperationGuideline] = useState('');
   const [knowledgeGuideline, setKnowledgeGuideline] = useState('');
@@ -63,6 +62,10 @@ const GuidelineSettings = () => {
       title: "저장 완료",
       description: "AI 지침이 성공적으로 저장되었습니다."
     });
+  };
+
+  const handleFilesChange = (files: any) => {
+    saveFiles(files);
   };
 
   if (!user) {
@@ -147,31 +150,10 @@ const GuidelineSettings = () => {
         </Card>
 
         {/* 지식 파일 업로드 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileUp className="h-5 w-5 text-blue-600" />
-              지식 파일 업로드
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <KnowledgeFileUpload />
-            {uploadedFiles.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm text-slate-600 mb-2">
-                  업로드된 파일 ({uploadedFiles.length}개)
-                </p>
-                <div className="space-y-2">
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="text-xs bg-slate-100 p-2 rounded">
-                      {file.name} ({(file.size / 1024).toFixed(1)}KB)
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <KnowledgeFileUpload 
+          onFilesChange={handleFilesChange}
+          uploadedFiles={uploadedFiles}
+        />
 
         {/* 저장 버튼 */}
         <Button onClick={saveGuidelines} className="w-full bg-blue-600 hover:bg-blue-700">

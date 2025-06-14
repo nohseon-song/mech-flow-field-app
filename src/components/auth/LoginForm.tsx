@@ -15,6 +15,7 @@ interface LoginFormProps {
 const LoginForm = ({ onToggleMode, isSignupMode }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { login, signup, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,9 +26,14 @@ const LoginForm = ({ onToggleMode, isSignupMode }: LoginFormProps) => {
     }
 
     if (isSignupMode) {
-      await signup({ email, password });
+      if (password !== confirmPassword) {
+        // 비밀번호 확인 검증 추가 가능
+        return;
+      }
+      await signup({ email, password, confirmPassword });
       setEmail('');
       setPassword('');
+      setConfirmPassword('');
     } else {
       await login({ email, password });
     }
@@ -69,6 +75,21 @@ const LoginForm = ({ onToggleMode, isSignupMode }: LoginFormProps) => {
                 className="w-full"
               />
             </div>
+
+            {isSignupMode && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="비밀번호를 다시 입력하세요"
+                  required
+                  className="w-full"
+                />
+              </div>
+            )}
 
             <Button
               type="submit"

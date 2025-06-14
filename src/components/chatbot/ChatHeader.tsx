@@ -1,26 +1,41 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Sparkles, RotateCcw } from 'lucide-react';
 
-export const ChatHeader = () => {
-  const navigate = useNavigate();
+interface ChatHeaderProps {
+  guideline: string;
+  onGuidelineChange: (value: string) => void;
+  onClearChat: () => void;
+}
 
+export const ChatHeader = ({ guideline, onGuidelineChange, onClearChat }: ChatHeaderProps) => {
   return (
-    <div className="bg-white shadow-sm border-b">
-      <div className="max-w-md mx-auto px-4 py-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/ai')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <MessageCircle className="h-6 w-6 text-teal-600" />
-              CheckMate 전문가
-            </h1>
-            <p className="text-sm text-slate-600">AI 챗봇이 24시간 답변해드립니다</p>
+    <div className="bg-white border-b">
+      <div className="max-w-md mx-auto px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            <Sparkles className="h-4 w-4 text-teal-600" />
+            <RadioGroup value={guideline} onValueChange={onGuidelineChange} className="flex gap-6">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="operation" id="operation-chat" />
+                <Label htmlFor="operation-chat" className="text-sm">실무 중심</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="knowledge" id="knowledge-chat" />
+                <Label htmlFor="knowledge-chat" className="text-sm">법규 중심</Label>
+              </div>
+            </RadioGroup>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearChat}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

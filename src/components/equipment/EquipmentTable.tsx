@@ -29,16 +29,13 @@ const EquipmentTable = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/80 border-b border-slate-200">
-            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/3">
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/2">
               설비명
             </TableHead>
             <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/3">
-              설치위치
-            </TableHead>
-            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/4">
               점검일자
             </TableHead>
-            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-20 text-center">
+            <TableHead className="text-sm font-bold text-slate-700 py-4 px-6 w-1/6 text-center">
               액션
             </TableHead>
           </TableRow>
@@ -56,7 +53,7 @@ const EquipmentTable = ({
           ))}
           {equipmentData.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-16 text-slate-500">
+              <TableCell colSpan={3} className="text-center py-16 text-slate-500">
                 <div className="flex flex-col items-center justify-center gap-3">
                   <div className="p-4 bg-slate-100 rounded-full">
                     <Settings className="h-8 w-8 text-slate-400" />

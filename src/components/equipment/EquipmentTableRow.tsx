@@ -41,12 +41,6 @@ const EquipmentTableRow = ({
         </button>
       </TableCell>
       
-      <TableCell className="text-sm text-slate-600 py-4 px-6 font-medium">
-        <div className="flex items-center">
-          <span className="text-slate-700">{equipment.location}</span>
-        </div>
-      </TableCell>
-      
       <TableCell className="text-sm py-4 px-6">
         <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
           {equipment.inspectionDate}

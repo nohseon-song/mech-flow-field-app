@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useEquipmentData } from '@/hooks/useEquipmentData';
 import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/Header';
 import EquipmentDashboard from '@/components/EquipmentDashboard';
@@ -13,38 +15,13 @@ import EquipmentDetailsDialog from '@/components/EquipmentDetailsDialog';
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { equipmentData, handleEquipmentSave, handleEquipmentDelete } = useEquipmentData();
+  
   const [isSignupMode, setIsSignupMode] = useState(false);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
-
-  const [equipmentData, setEquipmentData] = useState([
-    {
-      id: 1,
-      name: "보일러 #1",
-      location: "지하 1층 기계실",
-      inspectionDate: "2024-06-13"
-    },
-    {
-      id: 2,
-      name: "냉각탑 #2", 
-      location: "옥상",
-      inspectionDate: "2024-06-10"
-    },
-    {
-      id: 3,
-      name: "송풍기 #A",
-      location: "3층 기계실", 
-      inspectionDate: "2024-06-12"
-    },
-    {
-      id: 4,
-      name: "압축기 #3",
-      location: "2층 공장동",
-      inspectionDate: "2024-06-11"
-    }
-  ]);
 
   if (loading) {
     return (
@@ -66,37 +43,27 @@ const Index = () => {
     );
   }
 
-  const handleEquipmentSave = (equipmentInfo) => {
+  const handleEquipmentSaveWrapper = (equipmentInfo: any) => {
     if (editingEquipment) {
-      setEquipmentData(prev => prev.map(item => 
-        item.id === editingEquipment.id ? { ...item, ...equipmentInfo } : item
-      ));
+      handleEquipmentSave({ ...equipmentInfo, id: editingEquipment.id });
     } else {
-      const newEquipment = {
-        id: Date.now(),
-        ...equipmentInfo
-      };
-      setEquipmentData(prev => [...prev, newEquipment]);
+      handleEquipmentSave(equipmentInfo);
     }
     setIsRegistrationOpen(false);
     setEditingEquipment(null);
   };
 
-  const handleEquipmentEdit = (equipment) => {
+  const handleEquipmentEdit = (equipment: any) => {
     setEditingEquipment(equipment);
     setIsRegistrationOpen(true);
   };
 
-  const handleEquipmentDelete = (equipmentId) => {
-    setEquipmentData(prev => prev.filter(item => item.id !== equipmentId));
-  };
-
-  const handleEquipmentNameClick = (equipment) => {
+  const handleEquipmentNameClick = (equipment: any) => {
     setSelectedEquipment(equipment);
     setIsDetailsOpen(true);
   };
 
-  const handleDetailsEdit = (equipment) => {
+  const handleDetailsEdit = (equipment: any) => {
     setEditingEquipment(equipment);
     setIsRegistrationOpen(true);
   };
@@ -108,29 +75,24 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header 
-        onAdminClick={() => navigate('/admin')}
-      />
+      <Header onAdminClick={() => navigate('/admin')} />
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         <EquipmentDashboard equipmentData={equipmentData} />
-
         <AIFeaturesCard />
-
         <EquipmentStatusCard
           equipmentData={equipmentData}
           onEquipmentNameClick={handleEquipmentNameClick}
           onEquipmentEdit={handleEquipmentEdit}
           onAddEquipment={handleAddEquipment}
         />
-
         <RecentActivityCard />
       </div>
 
       <EquipmentRegistrationDialog
         open={isRegistrationOpen}
         onOpenChange={setIsRegistrationOpen}
-        onSave={handleEquipmentSave}
+        onSave={handleEquipmentSaveWrapper}
         onDelete={handleEquipmentDelete}
         editingEquipment={editingEquipment}
       />

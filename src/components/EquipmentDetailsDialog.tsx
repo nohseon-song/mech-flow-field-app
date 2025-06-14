@@ -26,6 +26,11 @@ const EquipmentDetailsDialog = ({
     onOpenChange(false);
   };
 
+  const renderValue = (value: unknown): string => {
+    if (value === null || value === undefined) return '-';
+    return String(value);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -102,7 +107,7 @@ const EquipmentDetailsDialog = ({
                         <label className="text-sm font-medium text-gray-600 capitalize">
                           {key.replace(/([A-Z])/g, ' $1').trim()}
                         </label>
-                        <p className="text-sm">{value || '-'}</p>
+                        <p className="text-sm">{renderValue(value)}</p>
                       </div>
                     ))}
                 </div>

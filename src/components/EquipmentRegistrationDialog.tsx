@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Settings } from 'lucide-react';
-import { EQUIPMENT_TYPES, EquipmentForm, FormField } from '@/types/equipment';
+import { Settings } from 'lucide-react';
+import { EquipmentForm } from '@/types/equipment';
 import { getDefaultFormForEquipmentType } from '@/data/equipmentForms';
 import EquipmentFormManager from '@/components/forms/EquipmentFormManager';
+import EquipmentTypeSelector from '@/components/forms/EquipmentTypeSelector';
+import DynamicFormRenderer from '@/components/forms/DynamicFormRenderer';
+import FormActions from '@/components/forms/FormActions';
 
 interface EquipmentRegistrationDialogProps {
   open: boolean;
@@ -90,81 +89,6 @@ const EquipmentRegistrationDialog = ({
     }
   };
 
-  const renderField = (field: FormField) => {
-    const value = formData[field.name] || '';
-
-    switch (field.type) {
-      case 'select':
-        return (
-          <Select 
-            value={value} 
-            onValueChange={(val) => handleInputChange(field.name, val)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={field.placeholder || `${field.label}을 선택하세요`} />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-
-      case 'date':
-        return (
-          <Input
-            type="date"
-            value={value}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-          />
-        );
-
-      case 'measurement':
-        return (
-          <div className="flex gap-2">
-            <Input
-              value={value}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
-              placeholder={field.placeholder || field.label}
-            />
-            {field.unit && (
-              <span className="flex items-center text-sm text-gray-500 min-w-fit px-2">
-                {field.unit}
-              </span>
-            )}
-          </div>
-        );
-
-      default:
-        return (
-          <div className="flex gap-2">
-            <Input
-              value={value}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
-              placeholder={field.placeholder || field.label}
-            />
-            {field.unit && (
-              <span className="flex items-center text-sm text-gray-500 min-w-fit px-2">
-                {field.unit}
-              </span>
-            )}
-          </div>
-        );
-    }
-  };
-
-  const groupedFields = currentForm?.fields.reduce((groups: Record<string, FormField[]>, field) => {
-    const category = field.category || '기본 정보';
-    if (!groups[category]) {
-      groups[category] = [];
-    }
-    groups[category].push(field);
-    return groups;
-  }, {}) || {};
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -186,81 +110,26 @@ const EquipmentRegistrationDialog = ({
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* 설비 종류 선택 */}
-            <div>
-              <Label htmlFor="equipmentType">설비 종류</Label>
-              <Select 
-                value={selectedEquipmentType} 
-                onValueChange={setSelectedEquipmentType}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="설비 종류를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {EQUIPMENT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <EquipmentTypeSelector
+              value={selectedEquipmentType}
+              onChange={setSelectedEquipmentType}
+            />
 
-            {/* 동적 양식 렌더링 */}
-            {currentForm && Object.entries(groupedFields).map(([category, fields]) => (
-              <div key={category} className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-3">{category}</h3>
-                <div className="space-y-4">
-                  {fields.map((field) => (
-                    <div key={field.id} className={fields.length > 2 ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
-                      <div>
-                        <Label htmlFor={field.name}>
-                          {field.label} {field.required && '*'}
-                        </Label>
-                        {renderField(field)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {currentForm && (
+              <DynamicFormRenderer
+                form={currentForm}
+                formData={formData}
+                onInputChange={handleInputChange}
+              />
+            )}
           </div>
 
-          <div className="flex justify-between pt-4">
-            <div>
-              {editingEquipment && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      삭제
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>설비 삭제</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        이 설비를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>취소</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete}>삭제</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                취소
-              </Button>
-              <Button onClick={handleSave}>
-                저장
-              </Button>
-            </div>
-          </div>
+          <FormActions
+            editingEquipment={editingEquipment}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onCancel={() => onOpenChange(false)}
+          />
         </DialogContent>
       </Dialog>
 

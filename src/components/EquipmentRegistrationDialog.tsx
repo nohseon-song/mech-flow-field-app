@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -54,6 +53,11 @@ const EquipmentRegistrationDialog = ({
     name: '',
     location: '',
     inspectionDate: '',
+    // 추가 설비 정보
+    manufacturer: '',
+    modelNumber: '',
+    coolingCapacity: '',
+    currentVoltage: '',
     // 압축기 관련
     operatingMethod: '',
     capacity: '',
@@ -99,6 +103,10 @@ const EquipmentRegistrationDialog = ({
         name: editingEquipment.name || '',
         location: editingEquipment.location || '',
         inspectionDate: editingEquipment.inspectionDate || '',
+        manufacturer: editingEquipment.manufacturer || '',
+        modelNumber: editingEquipment.modelNumber || '',
+        coolingCapacity: editingEquipment.coolingCapacity || '',
+        currentVoltage: editingEquipment.currentVoltage || '',
         operatingMethod: editingEquipment.operatingMethod || '',
         capacity: editingEquipment.capacity || '',
         lubricantLevel: editingEquipment.lubricantLevel || '',
@@ -135,6 +143,10 @@ const EquipmentRegistrationDialog = ({
         name: '',
         location: '',
         inspectionDate: '',
+        manufacturer: '',
+        modelNumber: '',
+        coolingCapacity: '',
+        currentVoltage: '',
         operatingMethod: '',
         capacity: '',
         lubricantLevel: '',
@@ -248,6 +260,46 @@ const EquipmentRegistrationDialog = ({
                 type="date"
                 value={formData.inspectionDate}
                 onChange={(e) => setFormData(prev => ({ ...prev, inspectionDate: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="manufacturer">제조회사</Label>
+              <Input
+                id="manufacturer"
+                value={formData.manufacturer}
+                onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
+                placeholder="제조회사"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="modelNumber">모델번호</Label>
+              <Input
+                id="modelNumber"
+                value={formData.modelNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, modelNumber: e.target.value }))}
+                placeholder="모델번호"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="coolingCapacity">냉동능력(kW/usRT)</Label>
+              <Input
+                id="coolingCapacity"
+                value={formData.coolingCapacity}
+                onChange={(e) => setFormData(prev => ({ ...prev, coolingCapacity: e.target.value }))}
+                placeholder="냉동능력"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="currentVoltage">전류/전압(A/V)</Label>
+              <Input
+                id="currentVoltage"
+                value={formData.currentVoltage}
+                onChange={(e) => setFormData(prev => ({ ...prev, currentVoltage: e.target.value }))}
+                placeholder="전류/전압"
               />
             </div>
           </div>

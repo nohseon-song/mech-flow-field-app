@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/Header';
+import EquipmentDashboard from '@/components/EquipmentDashboard';
 import AIFeaturesCard from '@/components/AIFeaturesCard';
 import EquipmentStatusCard from '@/components/EquipmentStatusCard';
 import RecentActivityCard from '@/components/RecentActivityCard';
@@ -112,6 +113,8 @@ const Index = () => {
       />
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        <EquipmentDashboard equipmentData={equipmentData} />
+
         <AIFeaturesCard />
 
         <EquipmentStatusCard

@@ -11,43 +11,45 @@ interface Equipment {
 export const downloadEquipmentPDF = (equipment: Equipment) => {
   const doc = new jsPDF();
   
-  // Set font for Korean text support
+  // 한글 지원을 위한 설정
   doc.setFont('helvetica');
+  doc.setLanguage('ko-KR');
   
-  // Add title
-  doc.setFontSize(20);
-  doc.text('설비 현황 보고서', 20, 30);
+  // 제목
+  doc.setFontSize(18);
+  doc.text('Equipment Status Report', 20, 30);
   
-  // Add equipment details
-  doc.setFontSize(14);
-  doc.text(`설비명: ${equipment.name}`, 20, 60);
-  doc.text(`설치위치: ${equipment.location}`, 20, 80);
-  doc.text(`점검일자: ${equipment.inspectionDate}`, 20, 100);
+  // 설비 정보 (영어로 표시하여 깨짐 방지)
+  doc.setFontSize(12);
+  doc.text(`Equipment Name: ${equipment.name}`, 20, 60);
+  doc.text(`Inspection Date: ${equipment.inspectionDate}`, 20, 80);
+  doc.text(`Equipment ID: ${equipment.id}`, 20, 100);
   
-  // Add generation date
+  // 한글 부분을 영어 라벨로 변경
   doc.setFontSize(10);
-  const currentDate = new Date().toLocaleDateString('ko-KR');
-  doc.text(`생성일: ${currentDate}`, 20, 120);
+  const currentDate = new Date().toLocaleDateString('en-US');
+  doc.text(`Generated: ${currentDate}`, 20, 120);
   
-  // Save the PDF
-  doc.save(`${equipment.name}_설비현황.pdf`);
+  // 파일명도 영어로 변경하여 호환성 향상
+  doc.save(`Equipment_${equipment.id}_Report.pdf`);
 };
 
 export const downloadAllEquipmentPDF = (equipmentData: Equipment[]) => {
   const doc = new jsPDF();
   
-  // Set font for Korean text support
+  // 한글 지원을 위한 설정
   doc.setFont('helvetica');
+  doc.setLanguage('ko-KR');
   
-  // Add title
-  doc.setFontSize(20);
-  doc.text('전체 설비 현황 보고서', 20, 30);
+  // 제목
+  doc.setFontSize(18);
+  doc.text('All Equipment Status Report', 20, 30);
   
-  // Add summary
+  // 요약
   doc.setFontSize(12);
-  doc.text(`총 설비 수: ${equipmentData.length}대`, 20, 50);
+  doc.text(`Total Equipment Count: ${equipmentData.length}`, 20, 50);
   
-  // Add equipment list
+  // 설비 목록
   let yPosition = 70;
   equipmentData.forEach((equipment, index) => {
     if (yPosition > 250) {
@@ -55,20 +57,20 @@ export const downloadAllEquipmentPDF = (equipmentData: Equipment[]) => {
       yPosition = 30;
     }
     
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.text(`${index + 1}. ${equipment.name}`, 20, yPosition);
     doc.setFontSize(10);
-    doc.text(`   위치: ${equipment.location}`, 20, yPosition + 10);
-    doc.text(`   점검일: ${equipment.inspectionDate}`, 20, yPosition + 20);
+    doc.text(`   Inspection Date: ${equipment.inspectionDate}`, 20, yPosition + 12);
+    doc.text(`   Equipment ID: ${equipment.id}`, 20, yPosition + 24);
     
-    yPosition += 35;
+    yPosition += 40;
   });
   
-  // Add generation date
+  // 생성일
   doc.setFontSize(10);
-  const currentDate = new Date().toLocaleDateString('ko-KR');
-  doc.text(`생성일: ${currentDate}`, 20, yPosition + 10);
+  const currentDate = new Date().toLocaleDateString('en-US');
+  doc.text(`Generated: ${currentDate}`, 20, yPosition + 10);
   
-  // Save the PDF
-  doc.save('전체_설비현황.pdf');
+  // 파일명 영어로 변경
+  doc.save('All_Equipment_Report.pdf');
 };

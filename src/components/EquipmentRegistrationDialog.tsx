@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -239,11 +238,11 @@ const EquipmentRegistrationDialog = ({
               </div>
               
               <div>
-                <Label>용량 × 대수</Label>
+                <Label>출력(KW)</Label>
                 <Input
                   value={formData.capacity}
                   onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
-                  placeholder="용량 (kW)"
+                  placeholder="출력 (kW)"
                 />
               </div>
 

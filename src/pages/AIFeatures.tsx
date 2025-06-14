@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, FileText, Camera, BookOpen, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Sparkles, FileText, Camera, BookOpen, MessageCircle, ArrowLeft, ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
@@ -28,6 +28,14 @@ const AIFeatures = () => {
     },
     {
       id: 3,
+      title: "AI 사진 분석",
+      description: "설비 사진을 업로드하면 AI가 원인, 징후, 개선방안을 자동으로 분석해 줍니다.",
+      icon: ImageIcon,
+      color: "bg-orange-500",
+      route: "/ai/photo-analysis"
+    },
+    {
+      id: 4,
       title: "AI 규정 준수 도우미",
       description: "복잡한 기계설비 법규가 궁금하신가요? 질문을 입력하면 AI가 「기계설비법」과 표준 매뉴얼에 근거하여 전문가처럼 답변해 드립니다.",
       icon: BookOpen,
@@ -35,7 +43,7 @@ const AIFeatures = () => {
       route: "/ai/regulation-helper"
     },
     {
-      id: 4,
+      id: 5,
       title: "AI 챗봇 (CheckMate 전문가)",
       description: "플랫폼 사용법, 기계설비 법규, 점검 노하우 등 무엇이든 물어보세요! AI 전문가가 24시간 답변해 드립니다.",
       icon: MessageCircle,

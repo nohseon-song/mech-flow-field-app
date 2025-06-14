@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { ArrowLeft, FileText, Sparkles, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -10,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 const MemoConverter = () => {
   const navigate = useNavigate();
   const [memo, setMemo] = useState('');
+  const [guideline, setGuideline] = useState('operation');
   const [convertedData, setConvertedData] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,24 +30,62 @@ const MemoConverter = () => {
     
     // Google Gemini API 호출 시뮬레이션
     setTimeout(() => {
-      const mockConvertedData = `
-## 점검 보고서
+      const baseData = {
+        equipment: memo.includes('보일러') ? '보일러 #1' : '설비명 미기재',
+        date: new Date().toLocaleDateString('ko-KR'),
+        inspector: '홍길동',
+        status: memo.includes('정상') || memo.includes('양호') ? '정상' : '확인 필요',
+        operation: memo.includes('이상') ? '이상 감지' : '정상',
+        notes: memo
+      };
 
-**설비명**: ${memo.includes('보일러') ? '보일러 #1' : '설비명 미기재'}
-**점검일시**: ${new Date().toLocaleDateString('ko-KR')}
-**점검자**: 홍길동
+      const mockConvertedData = guideline === 'operation' ? 
+        `## 점검 보고서 (운용지침)
+
+**설비명**: ${baseData.equipment}
+**점검일시**: ${baseData.date}
+**점검자**: ${baseData.inspector}
 
 ### 점검 항목
-- 외관 상태: ${memo.includes('정상') || memo.includes('양호') ? '정상' : '확인 필요'}
-- 작동 상태: ${memo.includes('이상') ? '이상 감지' : '정상'}
+- 외관 상태: ${baseData.status}
+- 작동 상태: ${baseData.operation}
 - 안전 상태: 점검 완료
 
-### 특이사항
-${memo}
+### 현장 메모
+${baseData.notes}
 
-### 조치사항
-- 정기 점검 완료
+### 실무 조치사항
+- 일일 점검: 외관 및 소음 확인
+- 주간 점검: 진동 및 온도 측정
+- 월간 점검: 윤활유 교체 및 필터 청소
 - 다음 점검 예정일: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR')}
+
+### 예상 문제점 및 대응방안
+- 설비 노후화 징후 모니터링 강화
+- 예비부품 재고 확인 필요
+      ` : 
+        `## 점검 보고서 (지식지침)
+
+**설비명**: ${baseData.equipment}
+**점검일시**: ${baseData.date}
+**점검자**: ${baseData.inspector}
+
+### 법규 준수 점검 항목
+- 기계설비법 제15조: 성능점검 실시 ✓
+- 산업안전보건법 제36조: 정기점검 이행 ✓
+- 건축물 에너지절약법: 효율 기준 적합성 확인 ✓
+
+### 현장 메모
+${baseData.notes}
+
+### 표준 매뉴얼 기준 조치사항
+- KS B 0251 기준: 배관 접합부 점검
+- KS C 4304 기준: 전기설비 절연상태 확인
+- 안전관리 규정: 개인보호구 착용 확인
+
+### 법정 기록 보관
+- 점검 결과 3년간 보관 의무 (기계설비법 시행규칙 제22조)
+- 차기 점검일: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR')} (연 1회)
       `;
       
       setConvertedData(mockConvertedData.trim());
@@ -52,7 +93,7 @@ ${memo}
       
       toast({
         title: "변환 완료",
-        description: "현장 메모가 구조화된 보고서로 변환되었습니다."
+        description: `현장 메모가 ${guideline === 'operation' ? '운용지침' : '지식지침'} 기반 보고서로 변환되었습니다.`
       });
     }, 2000);
   };
@@ -86,6 +127,28 @@ ${memo}
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        {/* Guideline Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              변환 지침 선택
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={guideline} onValueChange={setGuideline}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="operation" id="operation" />
+                <Label htmlFor="operation">운용지침 (실무 중심)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="knowledge" id="knowledge" />
+                <Label htmlFor="knowledge">지식지침 (법규/표준 중심)</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         {/* Input Section */}
         <Card>
           <CardHeader>
@@ -134,6 +197,10 @@ ${memo}
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-green-600" />
                   변환된 보고서
+                  {guideline === 'operation' ? 
+                    <span className="text-sm text-blue-600">(운용지침)</span> : 
+                    <span className="text-sm text-purple-600">(지식지침)</span>
+                  }
                 </div>
                 <Button variant="outline" size="sm" onClick={copyToClipboard}>
                   <Copy className="h-4 w-4 mr-1" />

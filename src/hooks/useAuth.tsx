@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, AuthState, LoginCredentials, SignupCredentials } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +11,31 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// 초기 관리자 계정 설정
+const initializeAdminAccount = () => {
+  const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+  const adminExists = existingUsers.find((user: any) => user.role === 'admin');
+  
+  if (!adminExists) {
+    const adminUser = {
+      id: 'admin-001',
+      email: 'admin@checkmate.com',
+      password: 'admin123',
+      approved: true,
+      role: 'admin',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    existingUsers.push(adminUser);
+    localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+    console.log('관리자 계정이 생성되었습니다:', {
+      email: 'admin@checkmate.com',
+      password: 'admin123'
+    });
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -23,6 +47,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = async () => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
+      
+      // 관리자 계정 초기화
+      initializeAdminAccount();
       
       // 로컬 스토리지에서 사용자 정보 확인 (실제 프로젝트에서는 Supabase auth 사용)
       const storedUser = localStorage.getItem('currentUser');
@@ -84,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: '로그인 성공',
-        description: '환영합니다!',
+        description: `환영합니다${user.role === 'admin' ? ', 관리자님' : ''}!`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.';

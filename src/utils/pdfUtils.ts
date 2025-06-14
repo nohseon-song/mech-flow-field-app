@@ -1,6 +1,5 @@
 
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 interface Equipment {
   id: number;
@@ -9,123 +8,143 @@ interface Equipment {
   inspectionDate: string;
 }
 
-// 한글 폰트 Base64 데이터 (간단한 대체 방법)
-const addKoreanFont = (doc: jsPDF) => {
-  // 기본 폰트 설정
-  doc.setFont('helvetica');
+// 한글을 위한 HTML 템플릿 생성
+const createHTMLTemplate = (equipment: Equipment, isAll: boolean = false, equipmentList?: Equipment[]) => {
+  if (isAll && equipmentList) {
+    return `
+      <div style="font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif; padding: 40px; background: white; width: 800px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <h1 style="font-size: 28px; color: #333; margin: 0; font-weight: bold;">전체 설비 현황 보고서</h1>
+          <div style="height: 2px; background: #ddd; margin: 20px 0;"></div>
+          <p style="font-size: 16px; color: #666; margin: 10px 0;">총 설비 수: ${equipmentList.length}대</p>
+        </div>
+        
+        <div style="margin-bottom: 40px;">
+          ${equipmentList.map((eq, index) => `
+            <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa;">
+              <h3 style="font-size: 18px; color: #333; margin: 0 0 15px 0; font-weight: bold;">${index + 1}. ${eq.name}</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                  <strong style="color: #555;">설비 ID:</strong>
+                  <span style="margin-left: 10px; color: #333;">${eq.id}</span>
+                </div>
+                <div>
+                  <strong style="color: #555;">점검일자:</strong>
+                  <span style="margin-left: 10px; color: #333;">${eq.inspectionDate}</span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
+          <p style="font-size: 12px; color: #888;">생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif; padding: 40px; background: white; width: 800px;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-size: 28px; color: #333; margin: 0; font-weight: bold;">설비 현황 보고서</h1>
+        <div style="height: 2px; background: #ddd; margin: 20px 0;"></div>
+      </div>
+      
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+        <div style="margin-bottom: 25px;">
+          <h3 style="font-size: 16px; color: #555; margin: 0 0 8px 0; font-weight: normal;">설비명</h3>
+          <p style="font-size: 20px; color: #333; margin: 0; font-weight: bold;">${equipment.name}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+          <div>
+            <h3 style="font-size: 16px; color: #555; margin: 0 0 8px 0; font-weight: normal;">설비 ID</h3>
+            <p style="font-size: 18px; color: #333; margin: 0; font-weight: bold;">${equipment.id}</p>
+          </div>
+          <div>
+            <h3 style="font-size: 16px; color: #555; margin: 0 0 8px 0; font-weight: normal;">점검일자</h3>
+            <p style="font-size: 18px; color: #333; margin: 0; font-weight: bold;">${equipment.inspectionDate}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <p style="font-size: 12px; color: #888;">생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+      </div>
+    </div>
+  `;
 };
 
-export const downloadEquipmentPDF = (equipment: Equipment) => {
-  const doc = new jsPDF();
-  
-  addKoreanFont(doc);
-  
-  // 제목
-  doc.setFontSize(20);
-  doc.setTextColor(40, 40, 40);
-  doc.text('설비 현황 보고서', 20, 30);
-  
-  // 구분선
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, 40, 190, 40);
-  
-  // 설비 정보
-  doc.setFontSize(14);
-  doc.setTextColor(60, 60, 60);
-  
-  const infoY = 60;
-  const lineHeight = 20;
-  
-  // 설비명을 영어와 한글로 모두 표시
-  doc.text('설비명 (Equipment Name):', 20, infoY);
-  doc.setTextColor(40, 40, 40);
-  doc.text(equipment.name, 20, infoY + 10);
-  
-  doc.setTextColor(60, 60, 60);
-  doc.text('점검일자 (Inspection Date):', 20, infoY + lineHeight * 1.5);
-  doc.setTextColor(40, 40, 40);
-  doc.text(equipment.inspectionDate, 20, infoY + lineHeight * 1.5 + 10);
-  
-  doc.setTextColor(60, 60, 60);
-  doc.text('설비 ID (Equipment ID):', 20, infoY + lineHeight * 3);
-  doc.setTextColor(40, 40, 40);
-  doc.text(equipment.id.toString(), 20, infoY + lineHeight * 3 + 10);
-  
-  // 하단 정보
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  const currentDate = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+// HTML을 이미지로 변환하여 PDF에 추가
+const htmlToPDF = async (htmlContent: string, filename: string) => {
+  return new Promise<void>((resolve) => {
+    // 임시 div 생성
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.top = '-9999px';
+    document.body.appendChild(tempDiv);
+
+    // html2canvas를 동적으로 import
+    import('html2canvas').then((html2canvas) => {
+      html2canvas.default(tempDiv.firstElementChild as HTMLElement, {
+        width: 800,
+        height: tempDiv.scrollHeight,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const imgWidth = 190;
+        const pageHeight = 290;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 10;
+
+        // 첫 페이지에 이미지 추가
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // 페이지가 넘어가는 경우 처리
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight + 10;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // 임시 div 제거
+        document.body.removeChild(tempDiv);
+        
+        pdf.save(filename);
+        resolve();
+      }).catch(() => {
+        document.body.removeChild(tempDiv);
+        resolve();
+      });
+    }).catch(() => {
+      document.body.removeChild(tempDiv);
+      resolve();
+    });
   });
-  doc.text(`생성일: ${currentDate}`, 20, 200);
-  
-  // 파일명을 한글과 영어 조합으로 변경
+};
+
+export const downloadEquipmentPDF = async (equipment: Equipment) => {
+  const htmlContent = createHTMLTemplate(equipment);
   const sanitizedName = equipment.name.replace(/[^\w\s가-힣]/gi, '');
-  doc.save(`${sanitizedName}_설비현황_${equipment.id}.pdf`);
+  const filename = `${sanitizedName}_설비현황_${equipment.id}.pdf`;
+  
+  await htmlToPDF(htmlContent, filename);
 };
 
-export const downloadAllEquipmentPDF = (equipmentData: Equipment[]) => {
-  const doc = new jsPDF();
+export const downloadAllEquipmentPDF = async (equipmentData: Equipment[]) => {
+  const htmlContent = createHTMLTemplate({} as Equipment, true, equipmentData);
+  const filename = '전체_설비현황_보고서.pdf';
   
-  addKoreanFont(doc);
-  
-  // 제목
-  doc.setFontSize(20);
-  doc.setTextColor(40, 40, 40);
-  doc.text('전체 설비 현황 보고서', 20, 30);
-  
-  // 구분선
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, 40, 190, 40);
-  
-  // 요약 정보
-  doc.setFontSize(14);
-  doc.setTextColor(60, 60, 60);
-  doc.text(`총 설비 수: ${equipmentData.length}대`, 20, 60);
-  
-  // 설비 목록
-  let yPosition = 80;
-  const pageHeight = 280;
-  
-  equipmentData.forEach((equipment, index) => {
-    // 페이지 넘김 체크
-    if (yPosition > pageHeight) {
-      doc.addPage();
-      yPosition = 30;
-    }
-    
-    // 설비 번호와 이름
-    doc.setFontSize(12);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`${index + 1}. ${equipment.name}`, 20, yPosition);
-    
-    // 상세 정보
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
-    doc.text(`   점검일자: ${equipment.inspectionDate}`, 25, yPosition + 10);
-    doc.text(`   설비 ID: ${equipment.id}`, 25, yPosition + 20);
-    
-    // 구분선
-    doc.setLineWidth(0.3);
-    doc.setDrawColor(230, 230, 230);
-    doc.line(20, yPosition + 25, 190, yPosition + 25);
-    
-    yPosition += 35;
-  });
-  
-  // 생성일
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  const currentDate = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
-  doc.text(`생성일: ${currentDate}`, 20, yPosition + 15);
-  
-  doc.save('전체_설비현황_보고서.pdf');
+  await htmlToPDF(htmlContent, filename);
 };

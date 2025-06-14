@@ -1,5 +1,7 @@
-
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/Header';
 import AIFeaturesCard from '@/components/AIFeaturesCard';
 import EquipmentStatusCard from '@/components/EquipmentStatusCard';
@@ -8,6 +10,9 @@ import EquipmentRegistrationDialog from '@/components/EquipmentRegistrationDialo
 import EquipmentDetailsDialog from '@/components/EquipmentDetailsDialog';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isSignupMode, setIsSignupMode] = useState(false);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
@@ -39,6 +44,26 @@ const Index = () => {
       inspectionDate: "2024-06-11"
     }
   ]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <LoginForm 
+        onToggleMode={() => setIsSignupMode(!isSignupMode)}
+        isSignupMode={isSignupMode}
+      />
+    );
+  }
 
   const handleEquipmentSave = (equipmentInfo) => {
     if (editingEquipment) {
@@ -82,7 +107,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header />
+      <Header 
+        onAdminClick={() => navigate('/admin')}
+      />
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         <AIFeaturesCard />

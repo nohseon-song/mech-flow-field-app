@@ -1,54 +1,70 @@
 
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Settings, ClipboardCheck, BarChart3, History, AlertTriangle, CheckCircle, Sparkles, Plus, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import EquipmentCard from '@/components/EquipmentCard';
+import EquipmentRegistrationDialog from '@/components/EquipmentRegistrationDialog';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState(null);
 
-  const equipmentData = [
+  const [equipmentData, setEquipmentData] = useState([
     {
       id: 1,
       name: "보일러 #1",
-      type: "가열설비",
-      status: "정상",
-      lastCheck: "2024-06-13",
-      nextCheck: "2024-06-20",
-      location: "지하 1층 기계실"
+      location: "지하 1층 기계실",
+      inspectionDate: "2024-06-13"
     },
     {
       id: 2,
-      name: "냉각탑 #2",
-      type: "냉각설비",
-      status: "점검필요",
-      lastCheck: "2024-06-10",
-      nextCheck: "2024-06-17",
-      location: "옥상"
+      name: "냉각탑 #2", 
+      location: "옥상",
+      inspectionDate: "2024-06-10"
     },
     {
       id: 3,
       name: "송풍기 #A",
-      type: "환기설비",
-      status: "정상",
-      lastCheck: "2024-06-12",
-      nextCheck: "2024-06-19",
-      location: "3층 기계실"
+      location: "3층 기계실", 
+      inspectionDate: "2024-06-12"
     },
     {
       id: 4,
       name: "압축기 #3",
-      type: "압축설비",
-      status: "이상",
-      lastCheck: "2024-06-11",
-      nextCheck: "2024-06-18",
-      location: "2층 공장동"
+      location: "2층 공장동",
+      inspectionDate: "2024-06-11"
     }
-  ];
+  ]);
+
+  const handleEquipmentSave = (equipmentInfo) => {
+    if (editingEquipment) {
+      setEquipmentData(prev => prev.map(item => 
+        item.id === editingEquipment.id ? { ...item, ...equipmentInfo } : item
+      ));
+    } else {
+      const newEquipment = {
+        id: Date.now(),
+        ...equipmentInfo
+      };
+      setEquipmentData(prev => [...prev, newEquipment]);
+    }
+    setIsRegistrationOpen(false);
+    setEditingEquipment(null);
+  };
+
+  const handleEquipmentEdit = (equipment) => {
+    setEditingEquipment(equipment);
+    setIsRegistrationOpen(true);
+  };
+
+  const handleEquipmentDelete = (equipmentId) => {
+    setEquipmentData(prev => prev.filter(item => item.id !== equipmentId));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -90,7 +106,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Equipment List */}
+        {/* Equipment Status */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center justify-between">
@@ -98,13 +114,54 @@ const Index = () => {
                 <Settings className="h-5 w-5 text-slate-600" />
                 설비 현황
               </div>
-              <Badge variant="secondary">{equipmentData.length}대</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{equipmentData.length}대</Badge>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    setEditingEquipment(null);
+                    setIsRegistrationOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  설비등록
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {equipmentData.map((equipment) => (
-              <EquipmentCard key={equipment.id} equipment={equipment} />
-            ))}
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs font-bold">명칭</TableHead>
+                    <TableHead className="text-xs font-bold">설치위치</TableHead>
+                    <TableHead className="text-xs font-bold">점검일자</TableHead>
+                    <TableHead className="text-xs font-bold w-16">편집</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {equipmentData.map((equipment) => (
+                    <TableRow key={equipment.id}>
+                      <TableCell className="text-xs font-medium">{equipment.name}</TableCell>
+                      <TableCell className="text-xs">{equipment.location}</TableCell>
+                      <TableCell className="text-xs">{equipment.inspectionDate}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEquipmentEdit(equipment)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
@@ -134,6 +191,14 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
+
+      <EquipmentRegistrationDialog
+        open={isRegistrationOpen}
+        onOpenChange={setIsRegistrationOpen}
+        onSave={handleEquipmentSave}
+        onDelete={handleEquipmentDelete}
+        editingEquipment={editingEquipment}
+      />
     </div>
   );
 };

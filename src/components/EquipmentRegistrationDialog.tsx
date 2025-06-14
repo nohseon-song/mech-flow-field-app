@@ -54,7 +54,7 @@ const EquipmentRegistrationDialog = ({
     location: '',
     inspectionDate: '',
     // 압축기 관련
-    operatingTime: '',
+    operatingMethod: '',
     capacity: '',
     capacityLevel: '',
     dischargePressure: '',
@@ -87,7 +87,7 @@ const EquipmentRegistrationDialog = ({
         name: editingEquipment.name || '',
         location: editingEquipment.location || '',
         inspectionDate: editingEquipment.inspectionDate || '',
-        operatingTime: editingEquipment.operatingTime || '',
+        operatingMethod: editingEquipment.operatingMethod || '',
         capacity: editingEquipment.capacity || '',
         capacityLevel: editingEquipment.capacityLevel || '',
         dischargePressure: editingEquipment.dischargePressure || '',
@@ -115,7 +115,7 @@ const EquipmentRegistrationDialog = ({
         name: '',
         location: '',
         inspectionDate: '',
-        operatingTime: '',
+        operatingMethod: '',
         capacity: '',
         capacityLevel: '',
         dischargePressure: '',
@@ -229,12 +229,21 @@ const EquipmentRegistrationDialog = ({
             <h3 className="text-lg font-semibold mb-3">압축기</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>기동 및 정지</Label>
-                <Input
-                  value={formData.operatingTime}
-                  onChange={(e) => setFormData(prev => ({ ...prev, operatingTime: e.target.value }))}
-                  placeholder="운전시간"
-                />
+                <Label>기동방식</Label>
+                <Select
+                  value={formData.operatingMethod}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, operatingMethod: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="기동방식을 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="압축식">압축식</SelectItem>
+                    <SelectItem value="스크롤식">스크롤식</SelectItem>
+                    <SelectItem value="왕복동식">왕복동식</SelectItem>
+                    <SelectItem value="기타">기타</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>

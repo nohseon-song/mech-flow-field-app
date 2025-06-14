@@ -24,6 +24,12 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<U
   };
   
   setCurrentUser(authenticatedUser);
+  
+  // 관리자 계정의 경우 영구 로그인 상태 플래그 설정
+  if (authenticatedUser.role === 'admin') {
+    localStorage.setItem('adminPersistentLogin', 'true');
+  }
+  
   return authenticatedUser;
 };
 

@@ -43,5 +43,26 @@ export const setCurrentUser = (user: User) => {
 };
 
 export const removeCurrentUser = () => {
+  // 관리자 영구 로그인이 설정된 경우 로그아웃하지 않음
+  const isPersistentAdmin = localStorage.getItem('adminPersistentLogin') === 'true';
+  const currentUser = getCurrentUser();
+  
+  if (isPersistentAdmin && currentUser?.role === 'admin') {
+    console.log('관리자 계정은 영구 로그인 상태가 유지됩니다.');
+    return;
+  }
+  
   localStorage.removeItem('currentUser');
+  localStorage.removeItem('adminPersistentLogin');
+};
+
+export const checkAdminPersistentLogin = (): User | null => {
+  const isPersistentAdmin = localStorage.getItem('adminPersistentLogin') === 'true';
+  const currentUser = getCurrentUser();
+  
+  if (isPersistentAdmin && currentUser?.role === 'admin') {
+    return currentUser;
+  }
+  
+  return null;
 };

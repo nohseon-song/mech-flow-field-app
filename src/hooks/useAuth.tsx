@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, AuthState, LoginCredentials, SignupCredentials } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
-import { initializeAdminAccount, getCurrentUser, removeCurrentUser } from '@/utils/authUtils';
+import { initializeAdminAccount, getCurrentUser, removeCurrentUser, checkAdminPersistentLogin } from '@/utils/authUtils';
 import { authenticateUser, registerUser } from '@/services/authService';
 
 interface AuthContextType extends AuthState {
@@ -27,6 +27,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthState(prev => ({ ...prev, loading: true }));
       
       initializeAdminAccount();
+      
+      // 먼저 관리자 영구 로그인 상태 확인
+      const persistentAdmin = checkAdminPersistentLogin();
+      if (persistentAdmin) {
+        setAuthState({
+          user: persistentAdmin,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
       
       const user = getCurrentUser();
       setAuthState({
@@ -57,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: '로그인 성공',
-        description: `환영합니다${user.role === 'admin' ? ', 관리자님' : ''}!`,
+        description: `환영합니다${user.role === 'admin' ? ', 관리자님' : ''}!${user.role === 'admin' ? ' (영구 로그인 상태)' : ''}`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.';
@@ -106,12 +117,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    const currentUser = authState.user;
+    
     removeCurrentUser();
+    
+    // 관리자 영구 로그인 상태인 경우 로그아웃되지 않음
+    if (currentUser?.role === 'admin' && localStorage.getItem('adminPersistentLogin') === 'true') {
+      toast({
+        title: '관리자 계정',
+        description: '관리자 계정은 영구 로그인 상태가 유지됩니다.',
+      });
+      return;
+    }
+    
     setAuthState({
       user: null,
       loading: false,
       error: null,
     });
+    
     toast({
       title: '로그아웃',
       description: '성공적으로 로그아웃되었습니다.',

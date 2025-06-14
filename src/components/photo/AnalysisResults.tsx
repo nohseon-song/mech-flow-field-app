@@ -8,11 +8,15 @@ interface AnalysisResultsProps {
     causes: string[];
     symptoms: string[];
     improvements: string[];
-  };
+  } | null;
   guideline: string;
 }
 
 export const AnalysisResults = ({ analysisResult, guideline }: AnalysisResultsProps) => {
+  if (!analysisResult) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       {/* 원인 분석 */}

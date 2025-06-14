@@ -6,7 +6,11 @@ export const usePhotoAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [guideline, setGuideline] = useState('operation');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<{
+    causes: string[];
+    symptoms: string[];
+    improvements: string[];
+  } | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

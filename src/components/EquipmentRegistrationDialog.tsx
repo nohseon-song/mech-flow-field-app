@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -57,27 +58,38 @@ const EquipmentRegistrationDialog = ({
     operatingMethod: '',
     capacity: '',
     lubricantLevel: '',
-    dischargePressure: '',
-    dischargePressureUnit: 'bar',
-    suctionPressure: '',
-    suctionPressureUnit: 'MPa',
-    flowRate: '',
-    flowRateUnit: 'm³/h',
+    // 증발기 관련
+    chilledWaterInletTemp: '',
+    chilledWaterInletTempUnit: '℃',
+    chilledWaterOutletTemp: '',
+    chilledWaterOutletTempUnit: '℃',
+    chilledWaterInletPressure: '',
+    chilledWaterInletPressureUnit: 'MPa',
+    chilledWaterOutletPressure: '',
+    chilledWaterOutletPressureUnit: 'MPa',
+    chilledWaterFlowRate: '',
+    chilledWaterFlowRateUnit: 'm³/h',
     // 응축기 관련
-    condenserInletTemp: '',
-    condenserInletTempUnit: '°C',
-    condenserOutletTemp: '',
-    condenserOutletTempUnit: '°C',
-    condenserFlowRate: '',
-    condenserFlowRateUnit: 'm³/h',
+    coolingWaterInletTemp: '',
+    coolingWaterInletTempUnit: '℃',
+    coolingWaterOutletTemp: '',
+    coolingWaterOutletTempUnit: '℃',
+    coolingWaterInletPressure: '',
+    coolingWaterInletPressureUnit: 'MPa',
+    coolingWaterOutletPressure: '',
+    coolingWaterOutletPressureUnit: 'MPa',
+    coolingWaterFlowRate: '',
+    coolingWaterFlowRateUnit: 'm³/h',
     // 냉매 관련
     refrigerantType: '',
-    refrigerantPressure: '',
-    refrigerantPressureUnit: 'MPa',
-    // 기타
+    // 안전밸브 설정 압력
+    safetyValvePressure: '',
+    safetyValvePressureUnit: 'MPa',
+    // 소음
     noise: '',
     noiseUnit: 'dB',
-    protectionStatus: ''
+    // 보호장치
+    protectionDevice: ''
   });
 
   useEffect(() => {
@@ -90,24 +102,32 @@ const EquipmentRegistrationDialog = ({
         operatingMethod: editingEquipment.operatingMethod || '',
         capacity: editingEquipment.capacity || '',
         lubricantLevel: editingEquipment.lubricantLevel || '',
-        dischargePressure: editingEquipment.dischargePressure || '',
-        dischargePressureUnit: editingEquipment.dischargePressureUnit || 'bar',
-        suctionPressure: editingEquipment.suctionPressure || '',
-        suctionPressureUnit: editingEquipment.suctionPressureUnit || 'MPa',
-        flowRate: editingEquipment.flowRate || '',
-        flowRateUnit: editingEquipment.flowRateUnit || 'm³/h',
-        condenserInletTemp: editingEquipment.condenserInletTemp || '',
-        condenserInletTempUnit: editingEquipment.condenserInletTempUnit || '°C',
-        condenserOutletTemp: editingEquipment.condenserOutletTemp || '',
-        condenserOutletTempUnit: editingEquipment.condenserOutletTempUnit || '°C',
-        condenserFlowRate: editingEquipment.condenserFlowRate || '',
-        condenserFlowRateUnit: editingEquipment.condenserFlowRateUnit || 'm³/h',
+        chilledWaterInletTemp: editingEquipment.chilledWaterInletTemp || '',
+        chilledWaterInletTempUnit: editingEquipment.chilledWaterInletTempUnit || '℃',
+        chilledWaterOutletTemp: editingEquipment.chilledWaterOutletTemp || '',
+        chilledWaterOutletTempUnit: editingEquipment.chilledWaterOutletTempUnit || '℃',
+        chilledWaterInletPressure: editingEquipment.chilledWaterInletPressure || '',
+        chilledWaterInletPressureUnit: editingEquipment.chilledWaterInletPressureUnit || 'MPa',
+        chilledWaterOutletPressure: editingEquipment.chilledWaterOutletPressure || '',
+        chilledWaterOutletPressureUnit: editingEquipment.chilledWaterOutletPressureUnit || 'MPa',
+        chilledWaterFlowRate: editingEquipment.chilledWaterFlowRate || '',
+        chilledWaterFlowRateUnit: editingEquipment.chilledWaterFlowRateUnit || 'm³/h',
+        coolingWaterInletTemp: editingEquipment.coolingWaterInletTemp || '',
+        coolingWaterInletTempUnit: editingEquipment.coolingWaterInletTempUnit || '℃',
+        coolingWaterOutletTemp: editingEquipment.coolingWaterOutletTemp || '',
+        coolingWaterOutletTempUnit: editingEquipment.coolingWaterOutletTempUnit || '℃',
+        coolingWaterInletPressure: editingEquipment.coolingWaterInletPressure || '',
+        coolingWaterInletPressureUnit: editingEquipment.coolingWaterInletPressureUnit || 'MPa',
+        coolingWaterOutletPressure: editingEquipment.coolingWaterOutletPressure || '',
+        coolingWaterOutletPressureUnit: editingEquipment.coolingWaterOutletPressureUnit || 'MPa',
+        coolingWaterFlowRate: editingEquipment.coolingWaterFlowRate || '',
+        coolingWaterFlowRateUnit: editingEquipment.coolingWaterFlowRateUnit || 'm³/h',
         refrigerantType: editingEquipment.refrigerantType || '',
-        refrigerantPressure: editingEquipment.refrigerantPressure || '',
-        refrigerantPressureUnit: editingEquipment.refrigerantPressureUnit || 'MPa',
+        safetyValvePressure: editingEquipment.safetyValvePressure || '',
+        safetyValvePressureUnit: editingEquipment.safetyValvePressureUnit || 'MPa',
         noise: editingEquipment.noise || '',
         noiseUnit: editingEquipment.noiseUnit || 'dB',
-        protectionStatus: editingEquipment.protectionStatus || ''
+        protectionDevice: editingEquipment.protectionDevice || ''
       });
     } else {
       setFormData({
@@ -118,24 +138,32 @@ const EquipmentRegistrationDialog = ({
         operatingMethod: '',
         capacity: '',
         lubricantLevel: '',
-        dischargePressure: '',
-        dischargePressureUnit: 'bar',
-        suctionPressure: '',
-        suctionPressureUnit: 'MPa',
-        flowRate: '',
-        flowRateUnit: 'm³/h',
-        condenserInletTemp: '',
-        condenserInletTempUnit: '°C',
-        condenserOutletTemp: '',
-        condenserOutletTempUnit: '°C',
-        condenserFlowRate: '',
-        condenserFlowRateUnit: 'm³/h',
+        chilledWaterInletTemp: '',
+        chilledWaterInletTempUnit: '℃',
+        chilledWaterOutletTemp: '',
+        chilledWaterOutletTempUnit: '℃',
+        chilledWaterInletPressure: '',
+        chilledWaterInletPressureUnit: 'MPa',
+        chilledWaterOutletPressure: '',
+        chilledWaterOutletPressureUnit: 'MPa',
+        chilledWaterFlowRate: '',
+        chilledWaterFlowRateUnit: 'm³/h',
+        coolingWaterInletTemp: '',
+        coolingWaterInletTempUnit: '℃',
+        coolingWaterOutletTemp: '',
+        coolingWaterOutletTempUnit: '℃',
+        coolingWaterInletPressure: '',
+        coolingWaterInletPressureUnit: 'MPa',
+        coolingWaterOutletPressure: '',
+        coolingWaterOutletPressureUnit: 'MPa',
+        coolingWaterFlowRate: '',
+        coolingWaterFlowRateUnit: 'm³/h',
         refrigerantType: '',
-        refrigerantPressure: '',
-        refrigerantPressureUnit: 'MPa',
+        safetyValvePressure: '',
+        safetyValvePressureUnit: 'MPa',
         noise: '',
         noiseUnit: 'dB',
-        protectionStatus: ''
+        protectionDevice: ''
       });
     }
   }, [editingEquipment, open]);
@@ -224,7 +252,7 @@ const EquipmentRegistrationDialog = ({
             </div>
           </div>
 
-          {/* 압축기 관련 */}
+          {/* 압축기 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">압축기</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -271,52 +299,48 @@ const EquipmentRegistrationDialog = ({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </div>
 
+          {/* 증발기 */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-3">증발기</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>토출(브라인) 압 · 유량출입</Label>
+                <Label>냉수(브라인) 입·출구온도</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.dischargePressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dischargePressure: e.target.value }))}
-                    placeholder="압력"
+                    value={formData.chilledWaterInletTemp}
+                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletTemp: e.target.value }))}
+                    placeholder="입구온도"
                   />
-                  <Select
-                    value={formData.dischargePressureUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, dischargePressureUnit: value }))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bar">bar</SelectItem>
-                      <SelectItem value="MPa">MPa</SelectItem>
-                      <SelectItem value="Pa">Pa</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">℃</span>
+                  <span className="flex items-center text-sm text-gray-500">/</span>
+                  <Input
+                    value={formData.chilledWaterOutletTemp}
+                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletTemp: e.target.value }))}
+                    placeholder="출구온도"
+                  />
+                  <span className="flex items-center text-sm text-gray-500">℃</span>
                 </div>
               </div>
 
               <div>
-                <Label>압 · 유량입력</Label>
+                <Label>냉수(브라인) 입·출구압력</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.suctionPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, suctionPressure: e.target.value }))}
-                    placeholder="압력"
+                    value={formData.chilledWaterInletPressure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterInletPressure: e.target.value }))}
+                    placeholder="입구압력"
                   />
-                  <Select
-                    value={formData.suctionPressureUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, suctionPressureUnit: value }))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MPa">MPa</SelectItem>
-                      <SelectItem value="bar">bar</SelectItem>
-                      <SelectItem value="Pa">Pa</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">MPa</span>
+                  <span className="flex items-center text-sm text-gray-500">/</span>
+                  <Input
+                    value={formData.chilledWaterOutletPressure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterOutletPressure: e.target.value }))}
+                    placeholder="출구압력"
+                  />
+                  <span className="flex items-center text-sm text-gray-500">MPa</span>
                 </div>
               </div>
 
@@ -324,75 +348,55 @@ const EquipmentRegistrationDialog = ({
                 <Label>냉수(브라인) 순환량</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.flowRate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, flowRate: e.target.value }))}
-                    placeholder="유량"
+                    value={formData.chilledWaterFlowRate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, chilledWaterFlowRate: e.target.value }))}
+                    placeholder="순환량"
                   />
-                  <Select
-                    value={formData.flowRateUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, flowRateUnit: value }))}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="m³/h">m³/h</SelectItem>
-                      <SelectItem value="L/min">L/min</SelectItem>
-                      <SelectItem value="L/s">L/s</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">m³/h</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 응축기 관련 */}
+          {/* 응축기 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">응축기</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>냉각수 입 · 출구온도</Label>
+                <Label>냉각수 입·출구온도</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.condenserInletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, condenserInletTemp: e.target.value }))}
+                    value={formData.coolingWaterInletTemp}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletTemp: e.target.value }))}
                     placeholder="입구온도"
                   />
-                  <Select
-                    value={formData.condenserInletTempUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, condenserInletTempUnit: value }))}
-                  >
-                    <SelectTrigger className="w-16">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="°C">°C</SelectItem>
-                      <SelectItem value="K">K</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">℃</span>
+                  <span className="flex items-center text-sm text-gray-500">/</span>
+                  <Input
+                    value={formData.coolingWaterOutletTemp}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletTemp: e.target.value }))}
+                    placeholder="출구온도"
+                  />
+                  <span className="flex items-center text-sm text-gray-500">℃</span>
                 </div>
               </div>
 
               <div>
-                <Label>냉각수 압 · 출구압력</Label>
+                <Label>냉각수 입·출구압력</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.condenserOutletTemp}
-                    onChange={(e) => setFormData(prev => ({ ...prev, condenserOutletTemp: e.target.value }))}
-                    placeholder="출구온도"
+                    value={formData.coolingWaterInletPressure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterInletPressure: e.target.value }))}
+                    placeholder="입구압력"
                   />
-                  <Select
-                    value={formData.condenserOutletTempUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, condenserOutletTempUnit: value }))}
-                  >
-                    <SelectTrigger className="w-16">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="°C">°C</SelectItem>
-                      <SelectItem value="K">K</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">MPa</span>
+                  <span className="flex items-center text-sm text-gray-500">/</span>
+                  <Input
+                    value={formData.coolingWaterOutletPressure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterOutletPressure: e.target.value }))}
+                    placeholder="출구압력"
+                  />
+                  <span className="flex items-center text-sm text-gray-500">MPa</span>
                 </div>
               </div>
 
@@ -400,29 +404,17 @@ const EquipmentRegistrationDialog = ({
                 <Label>냉각수 순환량</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.condenserFlowRate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, condenserFlowRate: e.target.value }))}
-                    placeholder="유량"
+                    value={formData.coolingWaterFlowRate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coolingWaterFlowRate: e.target.value }))}
+                    placeholder="순환량"
                   />
-                  <Select
-                    value={formData.condenserFlowRateUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, condenserFlowRateUnit: value }))}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="m³/h">m³/h</SelectItem>
-                      <SelectItem value="L/min">L/min</SelectItem>
-                      <SelectItem value="L/s">L/s</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">m³/h</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 냉매 관련 */}
+          {/* 냉매 */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-3">냉매</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -434,31 +426,31 @@ const EquipmentRegistrationDialog = ({
                   placeholder="냉매 종류"
                 />
               </div>
+            </div>
+          </div>
 
+          {/* 안전밸브 설정 압력 */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-3">안전밸브 설정 압력</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>인정발명 압력 입력</Label>
+                <Label>압력</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={formData.refrigerantPressure}
-                    onChange={(e) => setFormData(prev => ({ ...prev, refrigerantPressure: e.target.value }))}
+                    value={formData.safetyValvePressure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, safetyValvePressure: e.target.value }))}
                     placeholder="압력"
                   />
-                  <Select
-                    value={formData.refrigerantPressureUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, refrigerantPressureUnit: value }))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MPa">MPa</SelectItem>
-                      <SelectItem value="bar">bar</SelectItem>
-                      <SelectItem value="Pa">Pa</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">MPa</span>
                 </div>
               </div>
+            </div>
+          </div>
 
+          {/* 소음 */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-3">소음</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>소음</Label>
                 <div className="flex gap-2">
@@ -467,26 +459,22 @@ const EquipmentRegistrationDialog = ({
                     onChange={(e) => setFormData(prev => ({ ...prev, noise: e.target.value }))}
                     placeholder="소음"
                   />
-                  <Select
-                    value={formData.noiseUnit}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, noiseUnit: value }))}
-                  >
-                    <SelectTrigger className="w-16">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dB">dB</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <span className="flex items-center text-sm text-gray-500">dB</span>
                 </div>
               </div>
+            </div>
+          </div>
 
+          {/* 보호장치 */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-3">보호장치</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>보호 장치</Label>
+                <Label>보호장치</Label>
                 <Input
-                  value={formData.protectionStatus}
-                  onChange={(e) => setFormData(prev => ({ ...prev, protectionStatus: e.target.value }))}
-                  placeholder="보호 장치 상태"
+                  value={formData.protectionDevice}
+                  onChange={(e) => setFormData(prev => ({ ...prev, protectionDevice: e.target.value }))}
+                  placeholder="보호장치"
                 />
               </div>
             </div>

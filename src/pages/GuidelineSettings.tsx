@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -241,7 +240,7 @@ const GuidelineSettings = () => {
                 <BookOpen className="h-5 w-5 text-purple-600" />
               }
               {activeTab === 'operation' ? '운용지침 편집' : '지식지침 편집'}
-              <Lock className="h-4 w-4 text-green-600" title="로그인 사용자만 편집 가능" />
+              <Lock className="h-4 w-4 text-green-600" />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

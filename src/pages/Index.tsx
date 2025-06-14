@@ -57,7 +57,7 @@ const Index = () => {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-slate-800">기계설비 점검</h1>
+              <h1 className="text-xl font-bold text-slate-800">CheckMake-PRO mini</h1>
               <p className="text-sm text-slate-600">현장작업 관리시스템</p>
             </div>
             <Button variant="ghost" size="sm">

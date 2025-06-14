@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { useGuidelines } from '@/hooks/useGuidelines';
 
 const RegulationHelper = () => {
   const navigate = useNavigate();
+  const { getGuideline } = useGuidelines();
   const [question, setQuestion] = useState('');
   const [guideline, setGuideline] = useState('operation');
   const [answer, setAnswer] = useState('');
@@ -28,10 +30,33 @@ const RegulationHelper = () => {
 
     setIsLoading(true);
     
-    // Google Gemini API 호출 시뮬레이션
+    // Google Gemini API 호출 시뮬레이션 (실제로는 저장된 지침 사용)
     setTimeout(() => {
-      const mockAnswer = guideline === 'operation' ? 
-        `**실무 중심 답변**
+      const userGuideline = getGuideline(guideline as 'operation' | 'knowledge');
+      
+      const mockAnswer = userGuideline ? 
+        `**사용자 지침 기반 답변**
+
+질문: "${question}"
+
+**적용된 지침**:
+${userGuideline.substring(0, 300)}...
+
+**지침 기반 답변**:
+사용자가 설정한 ${guideline === 'operation' ? '운용지침' : '지식지침'}에 따라 다음과 같이 답변드립니다:
+
+- 설정된 지침의 우선순위에 따른 접근 방식 적용
+- 맞춤형 기준과 절차에 따른 구체적 가이드 제공
+- 사용자 조직의 특성을 반영한 실무적 해결책 제시
+
+**추가 권장사항**:
+- 지침 업데이트가 필요한 경우 설정 메뉴에서 수정 가능
+- 새로운 규정 변경사항이 있을 경우 지침 재검토 권장
+
+더 구체적인 답변을 원하시면 지침을 더 세부적으로 설정해보세요.
+        ` :
+        guideline === 'operation' ? 
+        `**기본 실무 중심 답변**
 
 질문하신 "${question}"에 대해 실무적 관점에서 답변드리겠습니다.
 
@@ -51,11 +76,9 @@ const RegulationHelper = () => {
 - 예비부품 재고 확인 동시 진행
 - 계절별 특이사항 사전 체크
 
-**문의처**: 
-- 현장 문제 발생 시: 설비관리팀 (내선 1234)
-- 긴급상황: 24시간 핫라인 (1588-0000)
+⚠️ 조직 맞춤형 운용지침을 설정하려면 AI 기능 → 지침설정을 이용하세요.
         ` :
-        `**법규/표준 기준 답변**
+        `**기본 법규/표준 기준 답변**
 
 질문하신 "${question}"에 대해 법규 및 표준에 근거하여 답변드리겠습니다.
 
@@ -77,14 +100,7 @@ const RegulationHelper = () => {
 - KS C 4304: 전기설비 안전 기준
 - 건축기계설비 표준시방서 적용
 
-**참고 매뉴얼**: 
-- 기계설비 안전관리 가이드라인 (국토교통부)
-- 건축물 에너지관리 매뉴얼 (에너지공단)
-- 산업안전보건법 관련 규정 (고용노동부)
-
-**법적 책임**: 점검 미이행 시 과태료 부과 (기계설비법 제28조)
-
-더 자세한 사항은 관련 법령을 직접 확인하시기 바랍니다.
+⚠️ 조직 맞춤형 지식지침을 설정하려면 AI 기능 → 지침설정을 이용하세요.
         `;
       
       setAnswer(mockAnswer.trim());

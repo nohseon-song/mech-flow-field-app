@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, FileText, Sparkles, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { useGuidelines } from '@/hooks/useGuidelines';
 
 const MemoConverter = () => {
   const navigate = useNavigate();
+  const { getGuideline } = useGuidelines();
   const [memo, setMemo] = useState('');
   const [guideline, setGuideline] = useState('operation');
   const [convertedData, setConvertedData] = useState('');
@@ -28,8 +30,9 @@ const MemoConverter = () => {
 
     setIsLoading(true);
     
-    // Google Gemini API 호출 시뮬레이션
+    // Google Gemini API 호출 시뮬레이션 (실제로는 저장된 지침 사용)
     setTimeout(() => {
+      const userGuideline = getGuideline(guideline as 'operation' | 'knowledge');
       const baseData = {
         equipment: memo.includes('보일러') ? '보일러 #1' : '설비명 미기재',
         date: new Date().toLocaleDateString('ko-KR'),
@@ -39,8 +42,32 @@ const MemoConverter = () => {
         notes: memo
       };
 
-      const mockConvertedData = guideline === 'operation' ? 
-        `## 점검 보고서 (운용지침)
+      // 사용자 지침이 있으면 그에 따라, 없으면 기본 로직 사용
+      const mockConvertedData = userGuideline ? 
+        `## 점검 보고서 (${guideline === 'operation' ? '운용지침' : '지식지침'} 기반)
+
+**설비명**: ${baseData.equipment}
+**점검일시**: ${baseData.date}
+**점검자**: ${baseData.inspector}
+
+### 적용된 지침
+${userGuideline.substring(0, 200)}...
+
+### 현장 메모
+${baseData.notes}
+
+### 지침 기반 분석 결과
+- 설비 상태: ${baseData.status}
+- 작동 상태: ${baseData.operation}
+- 지침 준수 여부: 확인 완료
+
+### 다음 조치사항
+- 사용자 지침에 따른 맞춤형 조치 권장
+- 정기 점검 스케줄 확인
+- 지침 업데이트 필요시 설정에서 수정 가능
+        ` : 
+        guideline === 'operation' ? 
+        `## 점검 보고서 (기본 운용지침)
 
 **설비명**: ${baseData.equipment}
 **점검일시**: ${baseData.date}
@@ -63,8 +90,10 @@ ${baseData.notes}
 ### 예상 문제점 및 대응방안
 - 설비 노후화 징후 모니터링 강화
 - 예비부품 재고 확인 필요
-      ` : 
-        `## 점검 보고서 (지식지침)
+
+⚠️ 맞춤형 지침을 설정하려면 AI 기능 → 지침설정에서 운용지침을 등록하세요.
+        ` : 
+        `## 점검 보고서 (기본 지식지침)
 
 **설비명**: ${baseData.equipment}
 **점검일시**: ${baseData.date}
@@ -86,7 +115,9 @@ ${baseData.notes}
 ### 법정 기록 보관
 - 점검 결과 3년간 보관 의무 (기계설비법 시행규칙 제22조)
 - 차기 점검일: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR')} (연 1회)
-      `;
+
+⚠️ 맞춤형 지침을 설정하려면 AI 기능 → 지침설정에서 지식지침을 등록하세요.
+        `;
       
       setConvertedData(mockConvertedData.trim());
       setIsLoading(false);

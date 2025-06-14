@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, FileText, Camera, BookOpen, MessageCircle, ArrowLeft, ImageIcon } from 'lucide-react';
+import { Sparkles, FileText, Camera, BookOpen, MessageCircle, ArrowLeft, ImageIcon, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
@@ -61,13 +60,22 @@ const AIFeatures = () => {
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-yellow-500" />
                 AI 기능
               </h1>
               <p className="text-sm text-slate-600">AI 기반 스마트 점검 도구</p>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/ai/guidelines')}
+              className="flex items-center gap-1"
+            >
+              <Settings className="h-4 w-4" />
+              지침설정
+            </Button>
           </div>
         </div>
       </div>

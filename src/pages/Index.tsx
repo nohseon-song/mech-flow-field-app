@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,16 +97,13 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-600" />
-              AI 스마트 기능
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
+              <span className="font-bold">AI 스마트 기능</span>
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs font-semibold">
                 NEW
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-700 mb-4">
-              Google Gemini AI로 현장 작업을 더욱 스마트하게!
-            </p>
             <Button 
               className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
               onClick={() => navigate('/ai')}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +7,6 @@ import Header from '@/components/Header';
 import EquipmentDashboard from '@/components/EquipmentDashboard';
 import AIFeaturesCard from '@/components/AIFeaturesCard';
 import EquipmentStatusCard from '@/components/EquipmentStatusCard';
-import RecentActivityCard from '@/components/RecentActivityCard';
 import EquipmentRegistrationDialog from '@/components/EquipmentRegistrationDialog';
 import EquipmentDetailsDialog from '@/components/EquipmentDetailsDialog';
 
@@ -86,7 +84,6 @@ const Index = () => {
           onEquipmentEdit={handleEquipmentEdit}
           onAddEquipment={handleAddEquipment}
         />
-        <RecentActivityCard />
       </div>
 
       <EquipmentRegistrationDialog

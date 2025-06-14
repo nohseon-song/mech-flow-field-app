@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FormField } from '@/types/equipment';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,31 @@ interface FormFieldEditorProps {
   fields: FormField[];
   onFieldsChange: (fields: FormField[]) => void;
 }
+
+const SI_UNITS = [
+  'SI UNIT',
+  'kW',
+  'usRT',
+  'A',
+  'V',
+  'Hz',
+  'bar',
+  '°C',
+  'kg/s',
+  'L/min',
+  'm³/h',
+  'Pa',
+  'kPa',
+  'MPa',
+  'mm',
+  'cm',
+  'm',
+  'kg',
+  'ton',
+  '%',
+  'rpm',
+  'dB'
+];
 
 const FormFieldEditor = ({ fields, onFieldsChange }: FormFieldEditorProps) => {
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -90,11 +114,18 @@ const FormFieldEditor = ({ fields, onFieldsChange }: FormFieldEditorProps) => {
             </div>
             <div>
               <Label>단위</Label>
-              <Input
-                value={newField.unit || ''}
-                onChange={(e) => setNewField(prev => ({ ...prev, unit: e.target.value }))}
-                placeholder="단위 (선택사항)"
-              />
+              <Select value={newField.unit || ''} onValueChange={(value) => setNewField(prev => ({ ...prev, unit: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="단위 선택" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {SI_UNITS.map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="mt-4">
@@ -198,10 +229,18 @@ const EditFieldForm = ({ field, onSave, onCancel }: EditFieldFormProps) => {
         </div>
         <div>
           <Label>단위</Label>
-          <Input
-            value={editedField.unit || ''}
-            onChange={(e) => setEditedField(prev => ({ ...prev, unit: e.target.value }))}
-          />
+          <Select value={editedField.unit || ''} onValueChange={(value) => setEditedField(prev => ({ ...prev, unit: value }))}>
+            <SelectTrigger>
+              <SelectValue placeholder="단위 선택" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {SI_UNITS.map((unit) => (
+                <SelectItem key={unit} value={unit}>
+                  {unit}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="flex gap-2">

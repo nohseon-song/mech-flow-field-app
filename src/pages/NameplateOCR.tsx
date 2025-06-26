@@ -2,17 +2,22 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileImage, Zap, Copy } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, FileImage, Zap, Copy, Edit, Save, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGuidelines } from '@/hooks/useGuidelines';
 import { toast } from '@/hooks/use-toast';
+import { extractTextFromImage, type OCRResult } from '@/utils/ocrProcessor';
 
 const NameplateOCR = () => {
   const navigate = useNavigate();
   const { getGuideline } = useGuidelines();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [extractedData, setExtractedData] = useState<any>(null);
+  const [ocrResult, setOcrResult] = useState<OCRResult | null>(null);
+  const [extractedText, setExtractedText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedText, setEditedText] = useState('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -27,7 +32,9 @@ const NameplateOCR = () => {
       }
       
       setSelectedFile(file);
-      setExtractedData(null);
+      setOcrResult(null);
+      setExtractedText('');
+      setIsEditing(false);
     }
   };
 
@@ -43,49 +50,89 @@ const NameplateOCR = () => {
 
     setIsProcessing(true);
 
-    // 지침 기반 OCR 처리 시뮬레이션
-    const operationGuideline = getGuideline('operation');
-    const knowledgeGuideline = getGuideline('knowledge');
-    
-    setTimeout(() => {
-      const mockData = {
-        manufacturer: "ABC 산업기계",
-        model: "Model: ABC-2024-PRO", 
-        serialNumber: "Serial No: 20240601-001",
-        capacity: "Capacity: 500kW",
-        voltage: "Voltage: 440V, 3Phase",
-        current: "Current: 850A",
-        frequency: "Frequency: 60Hz",
-        manufacturingDate: "제조일자: 2024.06.01",
-        certificateNumber: "검정번호: KC-2024-0601-001",
-        guidelines: {
-          operation: operationGuideline ? "운용지침이 적용되어 실무 중심 해석 제공" : "기본 OCR 추출",
-          knowledge: knowledgeGuideline ? "지식지침이 적용되어 법규 기준 해석 제공" : "기본 OCR 추출"
-        }
-      };
+    try {
+      toast({
+        title: "OCR 처리 중",
+        description: "이미지에서 텍스트를 추출하고 있습니다..."
+      });
 
-      setExtractedData(mockData);
+      // 실제 OCR 처리
+      const result = await extractTextFromImage(selectedFile);
+      
+      // 지침 기반 후처리
+      const operationGuideline = getGuideline('operation');
+      const knowledgeGuideline = getGuideline('knowledge');
+      
+      let processedText = result.extractedText;
+      
+      if (operationGuideline || knowledgeGuideline) {
+        processedText += '\n\n--- AI 지침 적용 ---';
+        if (operationGuideline) {
+          processedText += '\n• 운용지침: 실무 중심 해석 및 안전 고려사항 포함';
+        }
+        if (knowledgeGuideline) {
+          processedText += '\n• 지식지침: 관련 법규 및 기술기준 준수사항 반영';
+        }
+      }
+
+      setOcrResult(result);
+      setExtractedText(processedText);
+      setEditedText(processedText);
       setIsProcessing(false);
 
       toast({
         title: "OCR 추출 완료",
-        description: "텍스트 정보가 성공적으로 추출되었습니다."
+        description: `신뢰도: ${Math.round(result.confidence * 100)}%`
       });
-    }, 3000);
+
+    } catch (error) {
+      console.error('OCR 처리 오류:', error);
+      setIsProcessing(false);
+      
+      toast({
+        title: "OCR 처리 실패",
+        description: "텍스트 추출 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
   };
 
   const copyToClipboard = () => {
-    if (!extractedData) return;
-
-    const text = Object.entries(extractedData)
-      .filter(([key]) => key !== 'guidelines')
-      .map(([key, value]) => `${value}`)
-      .join('\n');
-
-    navigator.clipboard.writeText(text);
+    const textToCopy = isEditing ? editedText : extractedText;
+    navigator.clipboard.writeText(textToCopy);
     toast({
       title: "복사 완료", 
       description: "추출된 정보가 클립보드에 복사되었습니다."
+    });
+  };
+
+  const startEditing = () => {
+    setIsEditing(true);
+    setEditedText(extractedText);
+  };
+
+  const saveEdit = () => {
+    setExtractedText(editedText);
+    setIsEditing(false);
+    toast({
+      title: "저장 완료",
+      description: "텍스트가 성공적으로 저장되었습니다."
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditedText(extractedText);
+    setIsEditing(false);
+  };
+
+  const clearText = () => {
+    setExtractedText('');
+    setEditedText('');
+    setOcrResult(null);
+    setIsEditing(false);
+    toast({
+      title: "텍스트 삭제",
+      description: "추출된 텍스트가 삭제되었습니다."
     });
   };
 
@@ -143,7 +190,7 @@ const NameplateOCR = () => {
                 <img
                   src={URL.createObjectURL(selectedFile)}
                   alt="Selected image"
-                  className="max-w-full h-auto rounded-lg border"
+                  className="max-w-full h-auto rounded-lg border max-h-48 mx-auto"
                 />
               </div>
             )}
@@ -169,35 +216,65 @@ const NameplateOCR = () => {
         </Card>
 
         {/* 추출된 정보 */}
-        {extractedData && (
+        {(extractedText || isEditing) && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
                 <span>추출된 정보</span>
-                <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                  <Copy className="h-4 w-4 mr-1" />
-                  복사
-                </Button>
+                <div className="flex gap-2">
+                  {!isEditing ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={startEditing}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        편집
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={copyToClipboard}>
+                        <Copy className="h-4 w-4 mr-1" />
+                        복사
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={clearText}>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        삭제
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" size="sm" onClick={saveEdit}>
+                        <Save className="h-4 w-4 mr-1" />
+                        저장
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={cancelEdit}>
+                        취소
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                {Object.entries(extractedData)
-                  .filter(([key]) => key !== 'guidelines')
-                  .map(([key, value]) => (
-                    <div key={key} className="text-sm">
-                      <span className="font-medium text-slate-700">{value as string}</span>
-                    </div>
-                  ))}
-              </div>
+              {isEditing ? (
+                <Textarea
+                  value={editedText}
+                  onChange={(e) => setEditedText(e.target.value)}
+                  className="min-h-32 text-sm"
+                  placeholder="텍스트를 편집하세요..."
+                />
+              ) : (
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <pre className="whitespace-pre-wrap text-sm text-slate-700">
+                    {extractedText}
+                  </pre>
+                </div>
+              )}
               
-              {/* 지침 적용 상태 표시 */}
-              {extractedData.guidelines && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-blue-600 font-medium">🎯 적용된 AI 지침</p>
-                  <div className="text-xs text-blue-700 mt-1 space-y-1">
-                    <div>• {extractedData.guidelines.operation}</div>
-                    <div>• {extractedData.guidelines.knowledge}</div>
+              {/* OCR 신뢰도 표시 */}
+              {ocrResult && (
+                <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                  <p className="text-xs text-green-600 font-medium">
+                    📊 OCR 처리 결과
+                  </p>
+                  <div className="text-xs text-green-700 mt-1">
+                    신뢰도: {Math.round(ocrResult.confidence * 100)}%
                   </div>
                 </div>
               )}
@@ -216,6 +293,7 @@ const NameplateOCR = () => {
               <li>• 조명이 충분하고 그림자가 없는 상태에서 촬영하세요</li>
               <li>• 텍스트가 화면에 크게 나오도록 가까이서 촬영하세요</li>
               <li>• 기울어지지 않도록 정면에서 촬영하세요</li>
+              <li>• 추출된 텍스트는 편집, 복사, 삭제가 가능합니다</li>
               <li>• AI 지침 설정에서 맞춤형 분석 지침을 설정할 수 있습니다</li>
             </ul>
           </CardContent>

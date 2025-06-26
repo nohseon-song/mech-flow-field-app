@@ -5,7 +5,7 @@ import { BookOpen } from 'lucide-react';
 
 interface RegulationAnswerProps {
   answer: string;
-  guideline: string;
+  guideline?: string;
 }
 
 export const RegulationAnswer = ({ answer, guideline }: RegulationAnswerProps) => {
@@ -17,10 +17,7 @@ export const RegulationAnswer = ({ answer, guideline }: RegulationAnswerProps) =
         <CardTitle className="text-lg flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-purple-600" />
           AI 전문가 답변
-          {guideline === 'operation' ? 
-            <span className="text-sm text-blue-600">(운용지침)</span> : 
-            <span className="text-sm text-purple-600">(지식지침)</span>
-          }
+          <span className="text-sm text-purple-600">(설정된 지침 자동 적용)</span>
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileText, Camera, BookOpen, MessageCircle, Settings, Zap } from 'lucide-react';
+import { ArrowLeft, FileImage, BookOpen, MessageCircle, Settings, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
@@ -10,17 +9,10 @@ const AIFeatures = () => {
 
   const features = [
     {
-      title: 'AI 현장 메모 변환기',
-      description: '현장 메모를 구조화된 보고서로 자동 변환',
-      icon: FileText,
-      path: '/ai/memo-converter',
-      color: 'blue'
-    },
-    {
-      title: 'AI 설비 사진 분석',
-      description: '설비 사진으로 문제점과 개선사항 도출',
-      icon: Camera,
-      path: '/ai/photo-analysis',
+      title: 'AI OCR 판독',
+      description: '설비 명판 및 문서의 텍스트 자동 추출',
+      icon: FileImage,
+      path: '/ai/nameplate-ocr',
       color: 'green'
     },
     {
@@ -120,7 +112,7 @@ const AIFeatures = () => {
             <ul className="text-sm text-orange-700 space-y-2">
               <li>• 정확한 결과를 위해 구체적인 정보를 입력하세요</li>
               <li>• 지침 설정에서 조직 맞춤형 가이드라인을 설정할 수 있습니다</li>
-              <li>• 사진 분석 시 고화질 이미지를 업로드하세요</li>
+              <li>• OCR 판독 시 고화질 이미지를 업로드하세요</li>
               <li>• 규정 관련 질문은 구체적인 상황을 명시해주세요</li>
             </ul>
           </CardContent>

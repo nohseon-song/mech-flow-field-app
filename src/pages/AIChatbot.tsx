@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAIChatbot } from '@/hooks/useAIChatbot';
-import { ChatHeader } from '@/components/chatbot/ChatHeader';
 import { ChatMessages } from '@/components/chatbot/ChatMessages';
 import { ChatInput } from '@/components/chatbot/ChatInput';
 
@@ -14,8 +13,6 @@ const AIChatbot = () => {
     messages,
     input,
     setInput,
-    guideline,
-    setGuideline,
     isLoading,
     sendMessage,
     clearChat
@@ -30,24 +27,21 @@ const AIChatbot = () => {
             <Button variant="ghost" size="sm" onClick={() => navigate('/ai')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <MessageCircle className="h-6 w-6 text-orange-600" />
                 AI 챗봇
               </h1>
-              <p className="text-sm text-slate-600">24시간 설비 전문 상담</p>
+              <p className="text-sm text-slate-600">24시간 설비 전문 상담 (설정된 지침 자동 적용)</p>
             </div>
+            <Button variant="outline" size="sm" onClick={clearChat}>
+              초기화
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
-        <ChatHeader 
-          guideline={guideline}
-          onGuidelineChange={setGuideline}
-          onClearChat={clearChat}
-        />
-        
         <ChatMessages messages={messages} isLoading={isLoading} />
         
         <ChatInput

@@ -5,13 +5,13 @@ import { toast } from '@/hooks/use-toast';
 
 export const useRegulationHelper = () => {
   const [question, setQuestion] = useState('');
-  const [guideline, setGuideline] = useState('knowledge');
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { getGuideline } = useGuidelines();
 
-  const generateRegulationAnswer = (userQuestion: string, guidelineType: 'operation' | 'knowledge') => {
-    const selectedGuideline = getGuideline(guidelineType);
+  const generateRegulationAnswer = (userQuestion: string) => {
+    const operationGuideline = getGuideline('operation');
+    const knowledgeGuideline = getGuideline('knowledge');
     
     // 질문 키워드 분석
     const keywords = {
@@ -33,82 +33,10 @@ export const useRegulationHelper = () => {
 
     let response = '';
 
-    if (guidelineType === 'operation') {
-      // 실무 중심 답변
-      switch (category) {
-        case '성능점검':
-          response = `**실무 중심 성능점검 가이드**
-
-질문: ${userQuestion}
-
-**실무 대응 방안:**
-1. **점검 주기 확인**
-   - 연면적 15,000㎡ 이상 복합건물: 연 1회
-   - 연면적 3,000㎡ 이상: 2년 1회
-   - 신축 건물: 최초 가동 후 3년 이내
-
-2. **점검 준비사항**
-   - 설비 운전일지 및 정비기록 준비
-   - 준공도서 및 설계도면 확인
-   - 점검업체 자격 확인 (전문기관)
-
-3. **점검 실행 단계**
-   - 사전 안전조치 및 작업 허가
-   - 체계적 점검 실시 (성능, 안전, 효율)
-   - 점검 결과 즉시 검토 및 조치
-
-**주의사항:**
-- 점검 중 안전사고 예방 최우선
-- 이상 발견시 즉시 운전 중단 검토
-- 점검 결과는 반드시 기록 보존`;
-          break;
-        case '면적기준':
-          response = `**면적 기준 실무 적용**
-
-질문: ${userQuestion}
-
-**실무 확인 절차:**
-1. **연면적 산정**
-   - 건축물대장 또는 건축허가서 확인
-   - 실제 사용 면적과 법적 면적 구분
-   - 증축/개축 이력 반영
-
-2. **적용 기준**
-   - 15,000㎡ 이상: 연 1회 점검
-   - 3,000㎡ 이상: 2년 1회 점검
-   - 3,000㎡ 미만: 자체 점검 가능
-
-3. **실무 팁**
-   - 면적 경계선 근처는 사전 확인 필수
-   - 용도별 면적 합산 방법 숙지
-   - 관할청 사전 문의 권장`;
-          break;
-        default:
-          response = `**실무 중심 답변**
-
-질문: ${userQuestion}
-
-**기본 대응 방안:**
-1. **관련 법규 확인**
-   - 기계설비법 및 시행령 검토
-   - 지자체 조례 추가 확인
-   - 최신 개정사항 반영
-
-2. **실무 절차**
-   - 담당 부서 사전 협의
-   - 필요 서류 준비 및 제출
-   - 이행 일정 수립 및 관리
-
-3. **주의사항**
-   - 법정 기한 엄수
-   - 관련 기록 철저한 보존
-   - 변경사항 즉시 반영`;
-      }
-    } else {
-      // 법규 중심 답변
-      switch (category) {
-        case '성능점검':
-          response = `**기계설비법 성능점검 규정**
+    // 지식지침을 우선 적용하되, 운용지침도 함께 고려
+    switch (category) {
+      case '성능점검':
+        response = `**기계설비법 성능점검 규정**
 
 질문: ${userQuestion}
 
@@ -136,9 +64,9 @@ export const useRegulationHelper = () => {
 **벌칙 조항:**
 - 미점검시: 1천만원 이하 과태료 (법 제34조)
 - 허위보고시: 2년 이하 징역 또는 2천만원 이하 벌금`;
-          break;
-        case '면적기준':
-          response = `**기계설비법 면적 기준 적용**
+        break;
+      case '면적기준':
+        response = `**기계설비법 면적 기준 적용**
 
 질문: ${userQuestion}
 
@@ -164,9 +92,9 @@ export const useRegulationHelper = () => {
 - 건축물대장상 연면적 기준
 - 증축·개축시 합산 면적 적용
 - 용도별 면적 구분 없이 전체 연면적`;
-          break;
-        default:
-          response = `**기계설비법 규정 준수 답변**
+        break;
+      default:
+        response = `**기계설비법 규정 준수 답변**
 
 질문: ${userQuestion}
 
@@ -195,12 +123,15 @@ export const useRegulationHelper = () => {
 - 무허가 설치: 2년 이하 징역 또는 2천만원 이하 벌금
 - 미점검: 1천만원 이하 과태료
 - 허위신고: 500만원 이하 과태료`;
-      }
     }
 
-    // 사용자 설정 지침 추가 반영
-    if (selectedGuideline && selectedGuideline.trim()) {
-      response += `\n\n**맞춤 지침 적용:**\n${selectedGuideline.substring(0, 300)}${selectedGuideline.length > 300 ? '...' : ''}`;
+    // 설정된 지침들을 자동으로 적용
+    if (operationGuideline && operationGuideline.trim()) {
+      response += `\n\n**운용지침 적용:**\n${operationGuideline.substring(0, 200)}${operationGuideline.length > 200 ? '...' : ''}`;
+    }
+
+    if (knowledgeGuideline && knowledgeGuideline.trim()) {
+      response += `\n\n**지식지침 적용:**\n${knowledgeGuideline.substring(0, 200)}${knowledgeGuideline.length > 200 ? '...' : ''}`;
     }
 
     return response;
@@ -220,13 +151,13 @@ export const useRegulationHelper = () => {
 
     // AI 응답 생성
     setTimeout(() => {
-      const generatedAnswer = generateRegulationAnswer(question, guideline as 'operation' | 'knowledge');
+      const generatedAnswer = generateRegulationAnswer(question);
       setAnswer(generatedAnswer);
       setIsLoading(false);
 
       toast({
         title: "답변 완료",
-        description: "규정 관련 답변이 생성되었습니다."
+        description: "설정된 지침이 자동으로 적용된 답변이 생성되었습니다."
       });
     }, 2500);
   };
@@ -234,8 +165,6 @@ export const useRegulationHelper = () => {
   return {
     question,
     setQuestion,
-    guideline,
-    setGuideline,
     answer,
     isLoading,
     handleAskQuestion

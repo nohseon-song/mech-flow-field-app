@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRegulationHelper } from '@/hooks/useRegulationHelper';
-import { GuidelineSelector } from '@/components/memo/GuidelineSelector';
 import { RegulationQuestion } from '@/components/regulation/RegulationQuestion';
 import { RegulationAnswer } from '@/components/regulation/RegulationAnswer';
 
@@ -13,8 +12,6 @@ const RegulationHelper = () => {
   const {
     question,
     setQuestion,
-    guideline,
-    setGuideline,
     answer,
     isLoading,
     handleAskQuestion
@@ -34,18 +31,13 @@ const RegulationHelper = () => {
                 <BookOpen className="h-6 w-6 text-purple-600" />
                 AI 규정 준수 도우미
               </h1>
-              <p className="text-sm text-slate-600">기계설비법 전문 상담</p>
+              <p className="text-sm text-slate-600">기계설비법 전문 상담 (설정된 지침 자동 적용)</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        <GuidelineSelector 
-          guideline={guideline} 
-          onGuidelineChange={setGuideline} 
-        />
-
         <RegulationQuestion
           question={question}
           onQuestionChange={setQuestion}
@@ -55,7 +47,6 @@ const RegulationHelper = () => {
 
         <RegulationAnswer 
           answer={answer}
-          guideline={guideline}
         />
       </div>
     </div>

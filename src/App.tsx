@@ -8,9 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import AIFeatures from "./pages/AIFeatures";
-import MemoConverter from "./pages/MemoConverter";
 import NameplateOCR from "./pages/NameplateOCR";
-import PhotoAnalysis from "./pages/PhotoAnalysis";
 import RegulationHelper from "./pages/RegulationHelper";
 import AIChatbot from "./pages/AIChatbot";
 import GuidelineSettings from "./pages/GuidelineSettings";
@@ -33,9 +31,7 @@ const App = () => (
               <Route path="/workflow" element={<MobileWorkflow />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/ai" element={<AIFeatures />} />
-              <Route path="/ai/memo-converter" element={<MemoConverter />} />
               <Route path="/ai/nameplate-ocr" element={<NameplateOCR />} />
-              <Route path="/ai/photo-analysis" element={<PhotoAnalysis />} />
               <Route path="/ai/regulation-helper" element={<RegulationHelper />} />
               <Route path="/ai/chatbot" element={<AIChatbot />} />
               <Route path="/ai/guidelines" element={<GuidelineSettings />} />

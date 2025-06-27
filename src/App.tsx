@@ -1,47 +1,35 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ThemeProvider } from "@/hooks/useTheme";
-import Index from "./pages/Index";
-import AIFeatures from "./pages/AIFeatures";
-import NameplateOCR from "./pages/NameplateOCR";
-import RegulationHelper from "./pages/RegulationHelper";
-import AIChatbot from "./pages/AIChatbot";
-import GuidelineSettings from "./pages/GuidelineSettings";
-import MobileWorkflow from "./pages/MobileWorkflow";
-import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import Home from './pages/Home';
+import AI from './pages/AI';
+import ImageAnalysis from './pages/ImageAnalysis';
+import GuidelineSettings from './pages/GuidelineSettings';
+import NameplateOCR from './pages/NameplateOCR';
+import { Toaster } from '@/components/ui/toaster';
+import AIFeatures from './pages/AIFeatures';
+import DualImageOCR from './pages/DualImageOCR';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light">
-      <TooltipProvider>
-        <AuthProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-background">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/ai" element={<AIFeatures />} />
+            <Route path="/image-analysis" element={<ImageAnalysis />} />
+            <Route path="/guideline-settings" element={<GuidelineSettings />} />
+            <Route path="/ai/nameplate-ocr" element={<NameplateOCR />} />
+            <Route path="/ai/dual-image-ocr" element={<DualImageOCR />} />
+          </Routes>
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/workflow" element={<MobileWorkflow />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/ai" element={<AIFeatures />} />
-              <Route path="/ai/nameplate-ocr" element={<NameplateOCR />} />
-              <Route path="/ai/regulation-helper" element={<RegulationHelper />} />
-              <Route path="/ai/chatbot" element={<AIChatbot />} />
-              <Route path="/ai/guidelines" element={<GuidelineSettings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+        </div>
+      </Router>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

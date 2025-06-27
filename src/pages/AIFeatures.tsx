@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileImage, BookOpen, MessageCircle, Settings, Zap } from 'lucide-react';
+import { ArrowLeft, FileImage, BookOpen, MessageCircle, Settings, Zap, Compare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
@@ -9,11 +9,20 @@ const AIFeatures = () => {
 
   const features = [
     {
+      id: 'nameplate-ocr',
       title: 'AI OCR 판독',
-      description: '설비 명판 및 문서의 텍스트 자동 추출',
+      description: '설비 명판 및 문서 텍스트 자동 추출',
       icon: FileImage,
-      path: '/ai/nameplate-ocr',
-      color: 'green'
+      color: 'indigo',
+      path: '/ai/nameplate-ocr'
+    },
+    {
+      id: 'dual-image-ocr',
+      title: '다중 장비 비교 분석',
+      description: '설계 기준과 실측값 자동 비교 및 진단',
+      icon: Compare,
+      color: 'purple',
+      path: '/ai/dual-image-ocr'
     },
     {
       title: 'AI 규정 준수 도우미',
@@ -44,7 +53,8 @@ const AIFeatures = () => {
       green: 'bg-green-50 border-green-200 hover:bg-green-100',
       purple: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
       orange: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
-      gray: 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+      gray: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+      indigo: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -55,7 +65,8 @@ const AIFeatures = () => {
       green: 'text-green-600',
       purple: 'text-purple-600',
       orange: 'text-orange-600',
-      gray: 'text-gray-600'
+      gray: 'text-gray-600',
+      indigo: 'text-indigo-600'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };

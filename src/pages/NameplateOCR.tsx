@@ -1,19 +1,20 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, FileImage, Zap, Copy, Edit, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileImage, Zap, Copy, Edit, Save, Trash2, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGuidelines } from '@/hooks/useGuidelines';
 import { toast } from '@/hooks/use-toast';
 import { extractTextFromImage, type OCRResult } from '@/utils/ocrProcessor';
+import { parseOCRText, generateDiagnosis, sendToWebhook, type WebhookPayload } from '@/utils/ocrDataParser';
 
 const NameplateOCR = () => {
   const navigate = useNavigate();
   const { getGuideline } = useGuidelines();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSendingWebhook, setIsSendingWebhook] = useState(false);
   const [ocrResult, setOcrResult] = useState<OCRResult | null>(null);
   const [extractedText, setExtractedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -94,6 +95,60 @@ const NameplateOCR = () => {
         description: "텍스트 추출 중 오류가 발생했습니다.",
         variant: "destructive"
       });
+    }
+  };
+
+  const sendToWebhookHandler = async () => {
+    if (!extractedText) {
+      toast({
+        title: "추출된 텍스트가 없습니다",
+        description: "먼저 OCR 처리를 완료해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingWebhook(true);
+
+    try {
+      // 측정 데이터 파싱
+      const measurementData = parseOCRText(extractedText);
+      
+      // 진단 데이터 생성
+      const diagnosis = generateDiagnosis(measurementData, extractedText);
+
+      // Webhook 페이로드 구성
+      const payload: WebhookPayload = {
+        site_info: {
+          device_id: selectedFile?.name.split('.')[0] || 'UNKNOWN',
+          timestamp: new Date().toISOString()
+        },
+        measurement_data: measurementData,
+        diagnosis: diagnosis,
+        raw_text: extractedText
+      };
+
+      // Webhook 전송
+      const success = await sendToWebhook(payload);
+
+      if (success) {
+        toast({
+          title: "분석 데이터 전송 완료",
+          description: "Make.com으로 데이터가 성공적으로 전송되었습니다."
+        });
+      } else {
+        throw new Error('Webhook 전송 실패');
+      }
+
+    } catch (error) {
+      console.error('Webhook 전송 오류:', error);
+      toast({
+        title: "OCR 또는 분석 중 오류 발생",
+        description: "데이터 전송에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingWebhook(false);
     }
   };
 
@@ -222,6 +277,25 @@ const NameplateOCR = () => {
               <CardTitle className="text-lg flex items-center justify-between">
                 <span>추출된 정보</span>
                 <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={sendToWebhookHandler}
+                    disabled={isSendingWebhook}
+                    className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                  >
+                    {isSendingWebhook ? (
+                      <>
+                        <Send className="h-4 w-4 mr-1 animate-spin" />
+                        전송 중
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-1" />
+                        분석 전송
+                      </>
+                    )}
+                  </Button>
                   {!isEditing ? (
                     <>
                       <Button variant="outline" size="sm" onClick={startEditing}>
@@ -281,6 +355,21 @@ const NameplateOCR = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Make.com 연동 정보 */}
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="text-sm text-green-800">🔗 Make.com 자동화 연동</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="text-xs text-green-700 space-y-1">
+              <li>• OCR 추출 후 "분석 전송" 버튼으로 Make.com 워크플로우 실행</li>
+              <li>• 측정값, 상태값, 진단 결과를 JSON으로 구조화하여 전송</li>
+              <li>• Make.com에서 고급 GPT 분석 및 전문 보고서 자동 생성</li>
+              <li>• 실시간 현장 데이터 수집 및 분석 파이프라인 완성</li>
+            </ul>
+          </CardContent>
+        </Card>
 
         {/* 사용 팁 */}
         <Card className="bg-indigo-50 border-indigo-200">

@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileImage, BookOpen, MessageCircle, Settings, Zap, Compare } from 'lucide-react';
+import { ArrowLeft, FileImage, BookOpen, MessageCircle, Settings, Zap, GitCompare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AIFeatures = () => {
@@ -20,7 +21,7 @@ const AIFeatures = () => {
       id: 'dual-image-ocr',
       title: '다중 장비 비교 분석',
       description: '설계 기준과 실측값 자동 비교 및 진단',
-      icon: Compare,
+      icon: GitCompare,
       color: 'purple',
       path: '/ai/dual-image-ocr'
     },

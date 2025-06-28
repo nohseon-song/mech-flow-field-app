@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, FileImage, Zap, Copy, Edit, Save, Trash2, Send, Compare } from 'lucide-react';
+import { ArrowLeft, FileImage, Zap, Copy, Edit, Save, Trash2, Send, GitCompare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { extractTextFromImage, type OCRResult } from '@/utils/ocrProcessor';
@@ -216,7 +216,7 @@ const DualImageOCR = () => {
             </Button>
             <div>
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Compare className="h-6 w-6 text-indigo-600" />
+                <GitCompare className="h-6 w-6 text-indigo-600" />
                 다중 장비 비교 분석
               </h1>
               <p className="text-sm text-slate-600">설계 기준과 실측값 자동 비교 및 진단</p>
@@ -402,7 +402,7 @@ const DualImageOCR = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Compare className="h-5 w-5 text-purple-600" />
+              <GitCompare className="h-5 w-5 text-purple-600" />
               비교 분석
             </CardTitle>
           </CardHeader>
@@ -415,12 +415,12 @@ const DualImageOCR = () => {
               >
                 {isAnalyzing ? (
                   <>
-                    <Compare className="h-4 w-4 mr-2 animate-spin" />
+                    <GitCompare className="h-4 w-4 mr-2 animate-spin" />
                     분석 중...
                   </>
                 ) : (
                   <>
-                    <Compare className="h-4 w-4 mr-2" />
+                    <GitCompare className="h-4 w-4 mr-2" />
                     분석하기
                   </>
                 )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { extractTextFromImage, type OCRResult } from '@/utils/ocrProcessor';

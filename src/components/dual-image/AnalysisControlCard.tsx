@@ -3,14 +3,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitCompare, Send, Copy } from 'lucide-react';
-import { DualImageAnalysis } from '@/utils/dualImageAnalysis';
+import { AdvancedAnalysisResult } from '@/utils/advancedAnalysis';
 
 interface AnalysisControlCardProps {
   onPerformComparison: () => void;
   isAnalyzing: boolean;
   referenceText: string;
   measurementText: string;
-  analysisResult: DualImageAnalysis | null;
+  analysisResult: AdvancedAnalysisResult | null;
   onSendToWebhook: () => void;
   isSending: boolean;
   onCopyResult: () => void;

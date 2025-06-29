@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, AlertTriangle, CheckCircle, XCircle, Clock, MapPin, Settings } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Download, AlertTriangle, CheckCircle, XCircle, Clock, MapPin, Settings, MessageSquare } from 'lucide-react';
 import { generateAnalysisPDF } from '@/utils/pdfGenerator';
 import { AdvancedAnalysisResult } from '@/utils/advancedAnalysis';
 
@@ -12,6 +12,8 @@ interface AnalysisResultsCardProps {
   location: string;
   referenceText: string;
   measurementText: string;
+  userComment: string;
+  onUserCommentChange: (comment: string) => void;
   webhookResponse?: any;
 }
 
@@ -21,6 +23,8 @@ const AnalysisResultsCard = ({
   location,
   referenceText,
   measurementText,
+  userComment,
+  onUserCommentChange,
   webhookResponse 
 }: AnalysisResultsCardProps) => {
   
@@ -71,6 +75,7 @@ const AnalysisResultsCard = ({
       referenceData: referenceText,
       measurementData: measurementText,
       analysisResult,
+      userComment,
       webhookResponse
     });
   };
@@ -123,6 +128,25 @@ const AnalysisResultsCard = ({
                 {new Date(analysisResult.timestamp).toLocaleString('ko-KR')}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* 현장 의견 입력 섹션 */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-blue-500" />
+            💬 현장 의견 입력
+          </h4>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+            <Textarea
+              value={userComment}
+              onChange={(e) => onUserCommentChange(e.target.value)}
+              placeholder="현장에서 확인된 추가 정보나 의견을 입력해주세요..."
+              className="min-h-[80px] resize-none"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              이 의견은 PDF 리포트와 Make.com 전송에 포함됩니다.
+            </p>
           </div>
         </div>
 

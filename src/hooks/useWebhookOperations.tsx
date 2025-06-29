@@ -164,8 +164,8 @@ const extractKeyValues = (text: string): {[key: string]: string} => {
   const velocityMatch = text.match(/(?:Vel|Velocity)\s*(\d+\.?\d*)\s*m\/s/i);
   if (velocityMatch) keyValues.velocity = `${velocityMatch[1]} m/s`;
   
-  // Volume 값 추출
-  const volumeMatch = text.match /[+\-]?(\d+)\s*m3/i);
+  // Volume 값 추출 - Fixed the regex pattern
+  const volumeMatch = text.match(/[+\-]?(\d+)\s*m3/i);
   if (volumeMatch) keyValues.volume = `${volumeMatch[1]} m3`;
   
   // Signal 값들 추출

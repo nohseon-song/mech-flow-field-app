@@ -147,14 +147,15 @@ export const generateEnhancedAnalysisPDF = (data: EnhancedPDFData): void => {
   
   // 위험도 표시
   doc.setFontSize(12);
-  const riskColors = {
+  const riskColors: Record<string, [number, number, number]> = {
     low: [0, 150, 0],
     medium: [255, 150, 0],
     high: [200, 0, 0]
   };
-  const riskColor = riskColors[data.analysisResult.riskLevel as keyof typeof riskColors] || [100, 100, 100];
-  doc.setTextColor(...riskColor);
-  doc.text(`⚠️ 위험도: ${data.analysisResult.riskLevel?.toUpperCase()}`, 25, yPosition);
+  const riskLevel = data.analysisResult.riskLevel || 'low';
+  const riskColor = riskColors[riskLevel] || [100, 100, 100];
+  doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
+  doc.text(`⚠️ 위험도: ${riskLevel.toUpperCase()}`, 25, yPosition);
   yPosition += 10;
   
   doc.setTextColor(0, 0, 0);

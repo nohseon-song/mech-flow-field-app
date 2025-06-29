@@ -7,6 +7,9 @@ import { useEquipmentStorage } from '@/hooks/useEquipmentStorage';
 export const useAnalysisProcessing = () => {
   const [analysisResult, setAnalysisResult] = useState<AdvancedAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableResult, setEditableResult] = useState<AdvancedAnalysisResult | null>(null);
+  const [userComment, setUserComment] = useState('');
   const { equipmentData, addAnalysisToHistory } = useEquipmentStorage();
 
   const performComparison = async (
@@ -54,23 +57,30 @@ export const useAnalysisProcessing = () => {
       );
       
       analysis.timestamp = analysisStartTime;
-      setAnalysisResult(analysis);
+      analysis.equipmentName = equipmentData.equipmentName;
+      analysis.location = equipmentData.location;
       
-      addAnalysisToHistory({
+      setAnalysisResult(analysis);
+      setEditableResult(analysis);
+      
+      const historyData = {
         ...analysis,
         referenceText,
         measurementText,
+        userComment: '',
         images: {
           reference: referenceImage?.name,
           measurement: measurementImage?.name
         }
-      });
+      };
+      
+      addAnalysisToHistory(historyData);
       
       console.log('AI 분석 완료:', analysis);
       
       toast({
         title: "AI 분석 완료",
-        description: "전문 공학적 분석이 완료되었습니다."
+        description: "전문 공학적 분석이 완료되었습니다. 결과를 편집하실 수 있습니다."
       });
     } catch (error) {
       console.error('분석 오류:', error);
@@ -91,11 +101,48 @@ export const useAnalysisProcessing = () => {
            !isAnalyzing;
   };
 
+  const startEditing = () => {
+    if (analysisResult) {
+      setEditableResult({ ...analysisResult });
+      setIsEditing(true);
+    }
+  };
+
+  const saveEditing = () => {
+    if (editableResult) {
+      setAnalysisResult(editableResult);
+      setIsEditing(false);
+      toast({
+        title: "편집 완료",
+        description: "분석 결과가 수정되었습니다."
+      });
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditableResult(analysisResult);
+    setIsEditing(false);
+  };
+
+  const updateEditableResult = (field: keyof AdvancedAnalysisResult, value: any) => {
+    if (editableResult) {
+      setEditableResult({ ...editableResult, [field]: value });
+    }
+  };
+
   return {
     analysisResult,
     isAnalyzing,
+    isEditing,
+    editableResult,
+    userComment,
+    setUserComment,
     performComparison,
     canAnalyze,
-    setAnalysisResult
+    setAnalysisResult,
+    startEditing,
+    saveEditing,
+    cancelEditing,
+    updateEditableResult
   };
 };

@@ -10,6 +10,7 @@ import NameplateOCR from './pages/NameplateOCR';
 import { Toaster } from '@/components/ui/toaster';
 import AIFeatures from './pages/AIFeatures';
 import DualImageOCR from './pages/DualImageOCR';
+import AIChatbot from './pages/AIChatbot';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/ai" element={<AIFeatures />} />
+                <Route path="/ai/chatbot" element={<AIChatbot />} />
                 <Route path="/guideline-settings" element={<GuidelineSettings />} />
                 <Route path="/ai/nameplate-ocr" element={<NameplateOCR />} />
                 <Route path="/ai/dual-image-ocr" element={<DualImageOCR />} />

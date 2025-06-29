@@ -31,6 +31,9 @@ interface DualImageLayoutProps {
   canAnalyze: boolean;
   onPerformComparison: () => void;
   
+  userComment: string;
+  onUserCommentChange: (comment: string) => void;
+  
   isSending: boolean;
   onSendToWebhook: () => void;
   onCopyResult: () => void;
@@ -60,6 +63,9 @@ const DualImageLayout = ({
   isAnalyzing,
   canAnalyze,
   onPerformComparison,
+  
+  userComment,
+  onUserCommentChange,
   
   isSending,
   onSendToWebhook,
@@ -115,6 +121,8 @@ const DualImageLayout = ({
             location={location}
             referenceText={referenceText}
             measurementText={measurementText}
+            userComment={userComment}
+            onUserCommentChange={onUserCommentChange}
             webhookResponse={webhookResponse}
           />
         )}

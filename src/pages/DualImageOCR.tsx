@@ -25,6 +25,8 @@ const DualImageOCR = () => {
   const {
     analysisResult,
     isAnalyzing,
+    userComment,
+    setUserComment,
     performComparison,
     canAnalyze,
     setAnalysisResult
@@ -61,13 +63,13 @@ const DualImageOCR = () => {
 
   const handleSendToWebhook = () => {
     if (analysisResult) {
-      sendAnalysisToWebhook(analysisResult);
+      sendAnalysisToWebhook(analysisResult, referenceText, measurementText, userComment);
     }
   };
 
   const handleCopyResult = () => {
     if (analysisResult) {
-      copyAnalysisResult(analysisResult);
+      copyAnalysisResult(analysisResult, userComment);
     }
   };
 
@@ -105,6 +107,9 @@ const DualImageOCR = () => {
       isAnalyzing={isAnalyzing}
       canAnalyze={isAnalysisEnabled}
       onPerformComparison={handlePerformComparison}
+      
+      userComment={userComment}
+      onUserCommentChange={setUserComment}
       
       isSending={isSending}
       onSendToWebhook={handleSendToWebhook}

@@ -1,218 +1,486 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Bot, Send, RotateCcw, Download, Settings } from 'lucide-react';
-import { useGeminiChatbot } from '@/hooks/useGeminiChatbot';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { 
+  MessageCircle, 
+  Send, 
+  Bot, 
+  User, 
+  Trash2, 
+  Download, 
+  Settings,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  ArrowLeft,
+  Brain
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+
+interface ChatMessage {
+  id: string;
+  type: 'user' | 'bot';
+  content: string;
+  timestamp: Date;
+}
+
+const GOOGLE_GEMINI_API_KEY = "AIzaSyBgvOOeArqdsQFHD6zfAmjyLCptdKXRezc";
 
 const EnhancedAIChatbot = () => {
   const navigate = useNavigate();
-  const {
-    messages,
-    input,
-    setInput,
-    isLoading,
-    sendMessage,
-    clearChat,
-    exportChat
-  } = useGeminiChatbot();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSendMessage = async () => {
-    await sendMessage();
+  // 초기화 및 API 상태 확인
+  useEffect(() => {
+    checkApiConnection();
+    loadChatHistory();
+    
+    // 환영 메시지
+    const welcomeMessage: ChatMessage = {
+      id: 'welcome',
+      type: 'bot',
+      content: `안녕하세요! 저는 AI 설비 분석 전문 상담 챗봇입니다. 🤖
+
+다음과 같은 도움을 드릴 수 있습니다:
+• 설비 운전 및 유지보수 상담
+• 고장 진단 및 해결 방안 제시  
+• 성능 최적화 조언
+• 예방정비 계획 수립
+• 기술적 질문 답변
+
+궁금한 것이 있으시면 언제든 물어보세요!`,
+      timestamp: new Date()
+    };
+    
+    setMessages([welcomeMessage]);
+  }, []);
+
+  // 메시지 스크롤
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // API 연결 상태 확인
+  const checkApiConnection = async () => {
+    try {
+      setApiStatus('checking');
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Hello' }] }]
+        })
+      });
+      
+      if (response.ok) {
+        setApiStatus('connected');
+        console.log('✅ Gemini API 연결 성공');
+      } else {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+    } catch (error) {
+      setApiStatus('error');
+      console.error('❌ Gemini API 연결 실패:', error);
+      toast({
+        title: "API 연결 실패",
+        description: "Gemini API 연결에 문제가 있습니다. 새로고침해주세요.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // 채팅 이력 로드
+  const loadChatHistory = () => {
+    try {
+      const saved = localStorage.getItem('ai-chatbot-history');
+      if (saved) {
+        const parsedMessages = JSON.parse(saved).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        if (parsedMessages.length > 1) { // 환영 메시지 제외
+          setMessages(prev => [...prev, ...parsedMessages]);
+        }
+      }
+    } catch (error) {
+      console.warn('채팅 이력 로드 실패:', error);
+    }
+  };
+
+  // 채팅 이력 저장
+  const saveChatHistory = (newMessages: ChatMessage[]) => {
+    try {
+      const toSave = newMessages.filter(msg => msg.id !== 'welcome');
+      localStorage.setItem('ai-chatbot-history', JSON.stringify(toSave));
+    } catch (error) {
+      console.warn('채팅 이력 저장 실패:', error);
+    }
+  };
+
+  // 메시지 전송
+  const sendMessage = async () => {
+    const trimmedMessage = inputMessage.trim();
+    if (!trimmedMessage || isLoading) return;
+
+    if (apiStatus !== 'connected') {
+      toast({
+        title: "연결 오류",
+        description: "AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 사용자 메시지 추가
+    const userMessage: ChatMessage = {
+      id: `user_${Date.now()}`,
+      type: 'user',
+      content: trimmedMessage,
+      timestamp: new Date()
+    };
+
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      // AI 응답 요청
+      const aiResponse = await getAIResponse(trimmedMessage, updatedMessages);
+      
+      const botMessage: ChatMessage = {
+        id: `bot_${Date.now()}`,
+        type: 'bot',
+        content: aiResponse,
+        timestamp: new Date()
+      };
+
+      const finalMessages = [...updatedMessages, botMessage];
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+
+      toast({
+        title: "응답 완료",
+        description: "AI 분석이 완료되었습니다."
+      });
+
+    } catch (error) {
+      console.error('AI 응답 오류:', error);
+      
+      const errorMessage: ChatMessage = {
+        id: `error_${Date.now()}`,
+        type: 'bot',
+        content: `죄송합니다. 응답 생성 중 오류가 발생했습니다. 🔧
+
+오류 내용: ${error instanceof Error ? error.message : '알 수 없는 오류'}
+
+다시 시도해주시거나, 질문을 다르게 표현해보세요.`,
+        timestamp: new Date()
+      };
+
+      const finalMessages = [...updatedMessages, errorMessage];
+      setMessages(finalMessages);
+      
+      toast({
+        title: "응답 실패",
+        description: "AI 응답 생성에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // AI 응답 생성
+  const getAIResponse = async (userMessage: string, chatHistory: ChatMessage[]): Promise<string> => {
+    const systemPrompt = `당신은 산업설비 전문가 AI 어시스턴트입니다. 다음 역할을 수행하세요:
+
+1. 설비 운전, 유지보수, 고장 진단 전문 상담
+2. 구체적이고 실용적인 해결방안 제시
+3. 안전을 최우선으로 하는 조언
+4. 한국의 산업 현장 상황을 고려한 답변
+5. 전문 용어 사용 시 쉬운 설명 병행
+
+답변 스타일:
+- 친근하고 이해하기 쉽게
+- 단계별 설명으로 구체적으로
+- 안전 주의사항 반드시 포함
+- 필요시 추가 질문 유도`;
+
+    // 대화 컨텍스트 구성
+    const conversationContext = chatHistory
+      .slice(-10) // 최근 10개 메시지만
+      .filter(msg => msg.id !== 'welcome')
+      .map(msg => `${msg.type === 'user' ? '사용자' : 'AI'}: ${msg.content}`)
+      .join('\n\n');
+
+    const fullPrompt = `${systemPrompt}
+
+이전 대화:
+${conversationContext}
+
+현재 질문: ${userMessage}
+
+위 내용을 바탕으로 전문적이고 도움이 되는 답변을 제공해주세요.`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH", 
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API 오류: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!generatedText) {
+      throw new Error('AI 응답을 생성할 수 없습니다.');
+    }
+
+    return generatedText.trim();
+  };
+
+  // 채팅 초기화
+  const clearChat = () => {
+    if (window.confirm('모든 대화 내용을 삭제하시겠습니까?')) {
+      setMessages([{
+        id: 'welcome',
+        type: 'bot',
+        content: '새로운 대화를 시작합니다! 무엇을 도와드릴까요? 🤖',
+        timestamp: new Date()
+      }]);
+      localStorage.removeItem('ai-chatbot-history');
+      toast({
+        title: "채팅 초기화",
+        description: "모든 대화 내용이 삭제되었습니다."
+      });
+    }
+  };
+
+  // 채팅 다운로드
+  const downloadChat = () => {
+    const chatContent = messages
+      .filter(msg => msg.id !== 'welcome')
+      .map(msg => {
+        const time = msg.timestamp.toLocaleString('ko-KR');
+        const sender = msg.type === 'user' ? '사용자' : 'AI 어시스턴트';
+        return `[${time}] ${sender}:\n${msg.content}\n`;
+      })
+      .join('\n---\n\n');
+
+    const blob = new Blob([`AI 설비 상담 대화록\n생성일: ${new Date().toLocaleString('ko-KR')}\n\n${chatContent}`], 
+      { type: 'text/plain;charset=utf-8' });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `AI상담_${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "다운로드 완료",
+      description: "대화 내용이 텍스트 파일로 저장되었습니다."
+    });
+  };
+
+  // Enter 키 처리
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      sendMessage();
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" onClick={() => navigate('/ai')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <Bot className="h-8 w-8 text-purple-600" />
-              Gemini 1.5 AI ChatBot (고도화)
-            </h1>
-            <p className="text-slate-600 dark:text-gray-300">
-              실시간 Google Gemini AI 기반 기계설비 전문 어시스턴트
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => navigate('/guideline-settings')}
-              variant="outline"
-              size="sm"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              지침 설정
-            </Button>
-            <Button
-              onClick={exportChat}
-              variant="outline"
-              size="sm"
-              disabled={messages.length <= 1}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              대화 내보내기
-            </Button>
-            <Button
-              onClick={clearChat}
-              variant="outline"
-              size="sm"
-              disabled={messages.length <= 1}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              초기화
-            </Button>
-          </div>
-        </div>
-
-        {/* 상태 표시 */}
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">
-              🤖 Gemini 1.5 Flash 연결됨 - 실시간 AI 응답 활성화
-            </span>
-          </div>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-            운용지침 및 지식지침이 자동 적용되어 맞춤형 전문 답변을 제공합니다
-          </p>
-        </div>
-
-        <Card className="h-[600px] flex flex-col bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-600">
-            <CardTitle className="text-lg text-gray-900 dark:text-white flex items-center justify-between">
-              <span>실시간 AI 대화</span>
-              <span className="text-sm font-normal text-gray-500">
-                총 {messages.length}개 메시지
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0">
-            <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50 dark:bg-gray-700">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] p-4 rounded-lg ${
-                      message.type === 'user'
-                        ? 'bg-blue-600 text-white ml-4 rounded-br-sm'
-                        : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white mr-4 border border-gray-200 dark:border-gray-500 rounded-bl-sm shadow-sm'
-                    }`}
-                  >
-                    {message.type === 'assistant' && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <Bot className="h-4 w-4 text-purple-600" />
-                        <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
-                          Gemini AI
-                        </span>
-                      </div>
-                    )}
-                    <div className={`text-sm whitespace-pre-wrap leading-relaxed ${
-                      message.type === 'user' ? 'text-white' : 'text-gray-900 dark:text-gray-100'
-                    }`}>
-                      {message.content}
-                    </div>
-                    <p className={`text-xs mt-2 ${
-                      message.type === 'user' 
-                        ? 'text-blue-100' 
-                        : 'text-gray-500 dark:text-gray-400'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString('ko-KR')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white dark:bg-gray-600 p-4 rounded-lg mr-4 border border-gray-200 dark:border-gray-500 shadow-sm max-w-[85%]">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Bot className="h-4 w-4 text-purple-600" />
-                      <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
-                        Gemini AI
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                      <span className="text-xs text-gray-500 ml-2">AI가 응답을 생성하고 있습니다...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+      {/* 헤더 */}
+      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                돌아가기
+              </Button>
+              <div className="flex items-center gap-2">
+                <Brain className="h-6 w-6 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  AI 설비 전문 상담
+                </h1>
+              </div>
             </div>
             
-            <div className="p-4 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
-              <div className="flex gap-3">
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant={apiStatus === 'connected' ? 'default' : apiStatus === 'error' ? 'destructive' : 'secondary'}
+                className="flex items-center gap-1"
+              >
+                {apiStatus === 'checking' && <Loader2 className="h-3 w-3 animate-spin" />}
+                {apiStatus === 'connected' && <CheckCircle className="h-3 w-3" />}
+                {apiStatus === 'error' && <AlertCircle className="h-3 w-3" />}
+                {apiStatus === 'checking' ? '연결 확인 중' : 
+                 apiStatus === 'connected' ? 'Gemini 1.5 연결됨' : '연결 오류'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <Card className="h-[calc(100vh-200px)] flex flex-col">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                AI 상담 채팅
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={downloadChat} disabled={messages.length <= 1}>
+                  <Download className="h-4 w-4 mr-1" />
+                  저장
+                </Button>
+                <Button variant="outline" size="sm" onClick={clearChat}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  초기화
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 flex flex-col p-0">
+            {/* 메시지 영역 */}
+            <ScrollArea className="flex-1 px-4">
+              <div className="space-y-4 pb-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`flex gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.type === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-green-600 text-white'
+                      }`}>
+                        {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                      </div>
+                      
+                      <div className={`rounded-lg px-4 py-3 ${
+                        message.type === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      }`}>
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {message.content}
+                        </div>
+                        <div className={`text-xs mt-2 opacity-70 ${
+                          message.type === 'user' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {message.timestamp.toLocaleTimeString('ko-KR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {isLoading && (
+                  <div className="flex gap-3 justify-start">
+                    <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
+                      <Bot className="h-4 w-4" />
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        AI가 답변을 생성하고 있습니다...
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* 입력 영역 */}
+            <div className="border-t p-4">
+              <div className="flex gap-2">
                 <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="기계설비 관련 질문을 입력하세요... (예: 펌프 점검 주기, 법규 준수사항 등)"
-                  className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
-                  disabled={isLoading}
-                  maxLength={500}
+                  placeholder="설비 관련 질문을 입력하세요... (예: 펌프 진동이 심해요, 온도가 너무 높아요)"
+                  disabled={isLoading || apiStatus !== 'connected'}
+                  className="flex-1"
                 />
                 <Button 
-                  onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6"
+                  onClick={sendMessage} 
+                  disabled={!inputMessage.trim() || isLoading || apiStatus !== 'connected'}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   {isLoading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
                 </Button>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Enter로 전송 • 최대 500자 • 운용지침 자동 적용
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {input.length}/500
-                </p>
+              
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                💡 팁: 구체적인 상황을 설명하면 더 정확한 답변을 받을 수 있습니다
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* 사용 팁 */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 효과적인 질문 방법</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-blue-600 dark:text-blue-400">
-            <div>
-              <p className="font-medium mb-1">구체적인 설비명 포함:</p>
-              <p>"원심펌프 정기점검 주기는?"</p>
-            </div>
-            <div>
-              <p className="font-medium mb-1">법규 관련 질문:</p>
-              <p>"기계설비법 점검 의무사항은?"</p>
-            </div>
-            <div>
-              <p className="font-medium mb-1">고장 진단 요청:</p>
-              <p>"모터 진동 증가 원인 분석해줘"</p>
-            </div>
-            <div>
-              <p className="font-medium mb-1">안전 관련 문의:</p>
-              <p>"압력용기 안전점검 절차는?"</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

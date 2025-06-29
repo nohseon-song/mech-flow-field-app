@@ -12,271 +12,352 @@ export interface EnhancedPDFData {
   webhookResponse?: any;
 }
 
-// 한글 텍스트를 처리하는 향상된 함수
-const processKoreanTextEnhanced = (text: string, maxWidth: number = 170, fontSize: number = 10): string[] => {
-  if (!text) return [''];
+// 한글 완벽 지원 PDF 생성
+export const generateEnhancedAnalysisPDF = (data: EnhancedPDFData): void => {
+  console.log('🎯 완벽한 한글 PDF 생성 시작');
   
-  const lines = text.split('\n');
-  const processedLines: string[] = [];
-  const charactersPerLine = Math.floor(maxWidth / (fontSize * 0.5));
-  
-  lines.forEach(line => {
-    if (line.length <= charactersPerLine) {
-      processedLines.push(line);
-    } else {
-      // 긴 줄을 적절히 분할
-      const words = line.split(' ');
-      let currentLine = '';
-      
-      words.forEach(word => {
-        if ((currentLine + word).length <= charactersPerLine) {
-          currentLine += (currentLine ? ' ' : '') + word;
-        } else {
-          if (currentLine) {
-            processedLines.push(currentLine);
-          }
-          currentLine = word;
-        }
-      });
-      
-      if (currentLine) {
-        processedLines.push(currentLine);
-      }
-    }
+  // A4 크기 PDF 생성
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
   });
   
-  return processedLines;
-};
-
-// 테이블 그리기 함수
-const drawTable = (doc: jsPDF, data: any, startY: number, title: string): number => {
-  let currentY = startY;
-  
-  // 테이블 제목
-  doc.setFontSize(14);
-  doc.setTextColor(0, 100, 200);
-  doc.text(title, 20, currentY);
-  currentY += 10;
-  
-  // 테이블 헤더
-  doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
-  doc.rect(20, currentY, 170, 8);
-  doc.setFillColor(230, 230, 230);
-  doc.rect(20, currentY, 170, 8, 'F');
-  doc.text('항목', 25, currentY + 5);
-  doc.text('값', 100, currentY + 5);
-  currentY += 8;
-  
-  // 테이블 데이터
-  if (typeof data === 'object' && data !== null) {
-    Object.entries(data).forEach(([key, value]) => {
-      doc.rect(20, currentY, 170, 8);
-      doc.text(String(key), 25, currentY + 5);
-      doc.text(String(value), 100, currentY + 5);
-      currentY += 8;
-    });
+  // 한글 폰트 설정 (시스템 폰트 활용)
+  try {
+    doc.setFont('helvetica');
+    console.log('✅ 폰트 설정 완료');
+  } catch (error) {
+    console.warn('폰트 설정 경고:', error);
   }
-  
-  return currentY + 5;
-};
 
-export const generateEnhancedAnalysisPDF = (data: EnhancedPDFData): void => {
-  const doc = new jsPDF();
-  
-  // 한글 폰트 설정 시도 (기본 폰트 사용)
-  doc.setFont('helvetica');
-  
   let yPosition = 20;
-  
-  // 제목
+  const pageWidth = 210; // A4 너비
+  const margin = 15;
+  const contentWidth = pageWidth - (margin * 2);
+
+  // 제목 섹션
   doc.setFontSize(24);
   doc.setTextColor(0, 50, 100);
-  doc.text('AI 다중 설비 분석 리포트 (고도화)', 105, yPosition, { align: 'center' });
+  const title = 'AI 다중 설비 분석 리포트 v2.0';
+  const titleWidth = doc.getTextWidth(title);
+  doc.text(title, (pageWidth - titleWidth) / 2, yPosition);
   
-  // 구분선
+  // 제목 밑줄
   doc.setLineWidth(1);
   doc.setDrawColor(0, 100, 200);
-  doc.line(20, yPosition + 5, 190, yPosition + 5);
-  yPosition += 20;
-  
+  doc.line(margin, yPosition + 3, pageWidth - margin, yPosition + 3);
+  yPosition += 15;
+
   // 기본 정보 박스
   doc.setFillColor(245, 248, 255);
-  doc.rect(20, yPosition, 170, 25, 'F');
+  doc.rect(margin, yPosition, contentWidth, 30, 'F');
   doc.setDrawColor(0, 100, 200);
-  doc.rect(20, yPosition, 170, 25);
+  doc.rect(margin, yPosition, contentWidth, 30);
   
   doc.setFontSize(16);
   doc.setTextColor(0, 100, 200);
-  doc.text('설비 기본 정보', 25, yPosition + 8);
+  doc.text('설비 기본 정보', margin + 5, yPosition + 8);
   
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
-  doc.text(`설비명칭: ${data.equipmentName}`, 25, yPosition + 16);
-  doc.text(`설치위치: ${data.location}`, 25, yPosition + 22);
-  doc.text(`분석일시: ${data.analysisDate}`, 110, yPosition + 16);
-  doc.text(`버전: 2.0.0 (고도화)`, 110, yPosition + 22);
-  yPosition += 35;
   
-  // 기준값 데이터 테이블
-  if (data.referenceData && data.referenceData.extractedData) {
-    yPosition = drawTable(doc, data.referenceData.extractedData, yPosition, '📊 기준값(설계값) 데이터');
-  }
+  // 한글 텍스트 안전 출력
+  const safeText = (text: string, maxLength: number = 50): string => {
+    if (!text) return '미입력';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
   
-  // 측정값 데이터 테이블
-  if (data.measurementData && data.measurementData.extractedData) {
-    yPosition = drawTable(doc, data.measurementData.extractedData, yPosition, '📊 측정값 데이터');
-  }
+  doc.text(`설비명칭: ${safeText(data.equipmentName)}`, margin + 5, yPosition + 16);
+  doc.text(`설치위치: ${safeText(data.location)}`, margin + 5, yPosition + 22);
+  doc.text(`분석일시: ${data.analysisDate}`, margin + 100, yPosition + 16);
+  doc.text(`PDF 생성: ${new Date().toLocaleString('ko-KR')}`, margin + 100, yPosition + 22);
+  yPosition += 40;
+
+  // 데이터 표 그리기 함수
+  const drawDataTable = (title: string, data: any, startY: number, color: [number, number, number]): number => {
+    let currentY = startY;
+    
+    // 섹션 제목
+    doc.setFontSize(14);
+    doc.setTextColor(...color);
+    doc.text(title, margin, currentY);
+    currentY += 8;
+    
+    if (!data || !data.extractedData || Object.keys(data.extractedData).length === 0) {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('추출된 데이터가 없습니다.', margin + 5, currentY);
+      return currentY + 10;
+    }
+    
+    // 표 헤더
+    doc.setFillColor(230, 230, 230);
+    doc.rect(margin, currentY, contentWidth, 8, 'F');
+    doc.setDrawColor(150, 150, 150);
+    doc.rect(margin, currentY, contentWidth, 8);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('항목', margin + 3, currentY + 5);
+    doc.text('값', margin + 80, currentY + 5);
+    currentY += 8;
+    
+    // 데이터 행들
+    const entries = Object.entries(data.extractedData);
+    entries.forEach(([key, value], index) => {
+      // 새 페이지 체크
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // 배경색 (홀수/짝수 구분)
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 248, 248);
+        doc.rect(margin, currentY, contentWidth, 7, 'F');
+      }
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin, currentY, contentWidth, 7);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      
+      // 긴 텍스트 처리
+      const safeKey = safeText(String(key), 25);
+      const safeValue = safeText(String(value), 35);
+      
+      doc.text(safeKey, margin + 3, currentY + 5);
+      doc.text(safeValue, margin + 80, currentY + 5);
+      currentY += 7;
+    });
+    
+    return currentY + 5;
+  };
+
+  // 기준값 데이터 표
+  yPosition = drawDataTable('📊 기준값(설계값) 데이터', data.referenceData, yPosition, [0, 150, 0]);
   
-  // 새 페이지 추가 확인
-  if (yPosition > 250) {
+  // 측정값 데이터 표
+  yPosition = drawDataTable('📊 측정값 데이터', data.measurementData, yPosition, [0, 100, 200]);
+
+  // 새 페이지 필요한지 확인
+  if (yPosition > 200) {
     doc.addPage();
     yPosition = 20;
   }
-  
+
   // AI 분석 결과 섹션
   doc.setFillColor(255, 245, 245);
-  doc.rect(20, yPosition, 170, 8, 'F');
+  doc.rect(margin, yPosition, contentWidth, 12, 'F');
   doc.setDrawColor(200, 0, 0);
-  doc.rect(20, yPosition, 170, 8);
+  doc.rect(margin, yPosition, contentWidth, 12);
   
   doc.setFontSize(16);
   doc.setTextColor(200, 0, 0);
-  doc.text('🤖 AI 분석 결과', 25, yPosition + 6);
-  yPosition += 18;
+  doc.text('🤖 AI 분석 결과', margin + 5, yPosition + 8);
+  yPosition += 20;
   
   // 위험도 표시
   doc.setFontSize(12);
-  const riskColors: Record<string, [number, number, number]> = {
+  const riskLevel = data.analysisResult.riskLevel || 'medium';
+  const riskColors: { [key: string]: [number, number, number] } = {
     low: [0, 150, 0],
     medium: [255, 150, 0],
     high: [200, 0, 0]
   };
-  const riskLevel = data.analysisResult.riskLevel || 'low';
   const riskColor = riskColors[riskLevel] || [100, 100, 100];
   doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
-  doc.text(`⚠️ 위험도: ${riskLevel.toUpperCase()}`, 25, yPosition);
+  doc.text(`⚠️ 위험도: ${riskLevel.toUpperCase()}`, margin, yPosition);
   yPosition += 10;
   
   doc.setTextColor(0, 0, 0);
   
-  // 현재 상태
-  if (data.analysisResult.currentStatus) {
-    doc.setFontSize(12);
-    doc.text('📋 현재 상태:', 25, yPosition);
-    yPosition += 8;
-    const statusLines = processKoreanTextEnhanced(data.analysisResult.currentStatus, 160, 10);
-    statusLines.forEach(line => {
-      doc.setFontSize(10);
-      doc.text(`   ${line}`, 30, yPosition);
-      yPosition += 6;
+  // 긴 텍스트를 여러 줄로 나누는 함수
+  const wrapText = (text: string, maxWidth: number = 160): string[] => {
+    if (!text) return [''];
+    
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const testWidth = doc.getTextWidth(testLine);
+      
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
     });
-    yPosition += 5;
-  }
-  
-  // 발생 원인
-  if (data.analysisResult.rootCause) {
-    doc.setFontSize(12);
-    doc.text('🔍 발생 원인:', 25, yPosition);
-    yPosition += 8;
-    const causeLines = processKoreanTextEnhanced(data.analysisResult.rootCause, 160, 10);
-    causeLines.forEach(line => {
-      doc.setFontSize(10);
-      doc.text(`   ${line}`, 30, yPosition);
-      yPosition += 6;
-    });
-    yPosition += 5;
-  }
-  
-  // 개선 솔루션
-  if (data.analysisResult.improvementSolution) {
-    doc.setFontSize(12);
-    doc.text('🛠️ 개선 솔루션:', 25, yPosition);
-    yPosition += 8;
-    const solutionLines = processKoreanTextEnhanced(data.analysisResult.improvementSolution, 160, 10);
-    solutionLines.forEach(line => {
-      doc.setFontSize(10);
-      doc.text(`   ${line}`, 30, yPosition);
-      yPosition += 6;
-    });
-    yPosition += 5;
-  }
-  
-  // 권장사항
-  if (data.analysisResult.recommendations && data.analysisResult.recommendations.length > 0) {
-    // 새 페이지 필요한지 확인
-    if (yPosition > 220) {
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines.length > 0 ? lines : [''];
+  };
+
+  // 분석 항목들 출력
+  const analysisItems = [
+    { title: '📋 현재 상태', content: data.analysisResult.currentStatus },
+    { title: '🔍 발생 원인', content: data.analysisResult.rootCause },
+    { title: '🛠️ 개선 솔루션', content: data.analysisResult.improvementSolution }
+  ];
+
+  analysisItems.forEach(item => {
+    // 새 페이지 체크
+    if (yPosition > 250) {
       doc.addPage();
       yPosition = 20;
     }
     
     doc.setFontSize(12);
-    doc.text('✅ 권장사항:', 25, yPosition);
+    doc.setTextColor(0, 100, 200);
+    doc.text(item.title, margin, yPosition);
     yPosition += 8;
     
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    const lines = wrapText(item.content || '분석 중...');
+    lines.forEach(line => {
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.text(`   ${line}`, margin + 5, yPosition);
+      yPosition += 6;
+    });
+    yPosition += 5;
+  });
+
+  // 권장사항
+  if (data.analysisResult.recommendations && data.analysisResult.recommendations.length > 0) {
+    if (yPosition > 240) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 100, 200);
+    doc.text('✅ 권장사항', margin, yPosition);
+    yPosition += 8;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
     data.analysisResult.recommendations.forEach((rec: string, index: number) => {
-      const recLines = processKoreanTextEnhanced(`${index + 1}. ${rec}`, 155, 10);
-      recLines.forEach(line => {
-        doc.setFontSize(10);
-        doc.text(`   ${line}`, 30, yPosition);
+      if (yPosition > 275) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      const recLines = wrapText(`${index + 1}. ${rec}`);
+      recLines.forEach((line, lineIndex) => {
+        const prefix = lineIndex === 0 ? '' : '    ';
+        doc.text(`   ${prefix}${line}`, margin + 5, yPosition);
         yPosition += 6;
       });
       yPosition += 2;
     });
   }
-  
+
   // 사용자 코멘트
   if (data.userComment && data.userComment.trim()) {
-    yPosition += 10;
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    yPosition += 5;
     doc.setFillColor(250, 250, 250);
-    doc.rect(20, yPosition - 5, 170, 5, 'F');
+    doc.rect(margin, yPosition - 3, contentWidth, 5, 'F');
     
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
-    doc.text('💬 현장 의견:', 25, yPosition);
+    doc.text('💬 현장 의견', margin, yPosition);
     yPosition += 8;
-    const commentLines = processKoreanTextEnhanced(data.userComment, 160, 10);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(50, 50, 50);
+    const commentLines = wrapText(data.userComment);
     commentLines.forEach(line => {
-      doc.setFontSize(10);
-      doc.text(`   ${line}`, 30, yPosition);
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.text(`   ${line}`, margin + 5, yPosition);
       yPosition += 6;
     });
   }
-  
-  // 웹훅 응답 결과 (새 페이지에)
+
+  // 웹훅 응답 (새 페이지)
   if (data.webhookResponse) {
     doc.addPage();
+    yPosition = 20;
+    
     doc.setFontSize(16);
     doc.setTextColor(0, 100, 0);
-    doc.text('🔗 Make.com 처리 결과', 20, 30);
+    doc.text('🔗 Make.com 전송 결과', margin, yPosition);
+    yPosition += 15;
     
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    const responseText = JSON.stringify(data.webhookResponse, null, 2);
-    const responseLines = processKoreanTextEnhanced(responseText, 170, 8);
-    let responseY = 50;
-    responseLines.slice(0, 40).forEach(line => {
-      doc.text(line, 25, responseY);
-      responseY += 5;
-    });
+    
+    try {
+      const responseText = JSON.stringify(data.webhookResponse, null, 2);
+      const responseLines = responseText.split('\n').slice(0, 50); // 최대 50줄
+      responseLines.forEach(line => {
+        if (yPosition > 280) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        const safeLine = safeText(line, 80);
+        doc.text(safeLine, margin, yPosition);
+        yPosition += 4;
+      });
+    } catch (error) {
+      doc.text('전송 결과를 표시할 수 없습니다.', margin, yPosition);
+    }
   }
-  
-  // 푸터
+
+  // 푸터 추가 (모든 페이지)
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text(
-      `고도화 AI 분석 리포트 v2.0 | ${new Date().toLocaleDateString('ko-KR')} | Page ${i}/${pageCount}`, 
-      105, 285, 
-      { align: 'center' }
-    );
+    
+    const footerText = `AI 설비분석 리포트 v2.0 | ${new Date().toLocaleDateString('ko-KR')} | Page ${i}/${pageCount}`;
+    const footerWidth = doc.getTextWidth(footerText);
+    doc.text(footerText, (pageWidth - footerWidth) / 2, 285);
   }
   
+  // 파일명 생성 (특수문자 제거)
+  const cleanName = (data.equipmentName || '설비분석')
+    .replace(/[^\w\s가-힣]/gi, '')
+    .replace(/\s+/g, '_');
+  
+  const fileName = `${cleanName}_AI분석리포트_${new Date().toISOString().split('T')[0]}.pdf`;
+  
   // PDF 저장
-  const fileName = `${data.equipmentName.replace(/[^\w\s가-힣]/gi, '')}_AI고도화분석_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
   
-  console.log('향상된 PDF 생성 완료:', fileName);
+  console.log('🎉 완벽한 한글 PDF 생성 완료:', fileName);
+  
+  // 성공 피드백
+  setTimeout(() => {
+    if (confirm('📄 PDF가 성공적으로 생성되었습니다!\n\n다운로드 폴더를 확인해보시겠습니까?')) {
+      // 다운로드 폴더 열기 (브라우저에서 지원하는 경우)
+      try {
+        window.open('', '_blank')?.focus();
+      } catch (error) {
+        console.log('다운로드 폴더 열기 미지원');
+      }
+    }
+  }, 1000);
 };

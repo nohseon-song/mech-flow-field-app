@@ -26,6 +26,14 @@ const Index = () => {
       path: "/ai/chatbot",
       status: "신규 개선",
       highlights: ["실시간 대화", "전문 지식 기반", "24시간 이용"]
+    },
+    {
+      icon: <Settings className="h-8 w-8 text-purple-600" />,
+      title: "설비 성능점검 시스템",
+      description: "3단계 드롭다운으로 체계적인 설비별 성능점검 항목 관리",
+      path: "/equipment-inspection",
+      status: "신규 추가",
+      highlights: ["3단계 선택구조", "임시저장 기능", "사용자 직접입력"]
     }
   ];
 
@@ -84,7 +92,7 @@ const Index = () => {
         </div>
 
         {/* 기능 카드들 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 dark:hover:border-blue-700">
               <CardHeader className="space-y-4">

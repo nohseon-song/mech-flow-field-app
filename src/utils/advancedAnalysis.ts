@@ -1,4 +1,3 @@
-
 import { toast } from '@/hooks/use-toast';
 
 // Google Vision API 키 (OCR 전용)
@@ -16,6 +15,14 @@ export interface AdvancedAnalysisResult {
   timestamp: string;
   equipmentName?: string;
   location?: string;
+  processingTime?: number;
+  images?: {
+    reference: string | null;
+    measurement: string | null;
+  };
+  referenceData?: Record<string, string>;
+  measurementData?: Record<string, string>;
+  isError?: boolean;
 }
 
 // 타임아웃 설정 (30초)
@@ -578,7 +585,15 @@ ${measurementText}
       riskLevel: (analysisData.위험도 || analysisData.riskLevel || 'medium') as 'low' | 'medium' | 'high',
       timestamp: new Date().toISOString(),
       equipmentName,
-      location
+      location,
+      processingTime: analysisTime,
+      images: {
+        reference: null,
+        measurement: null
+      },
+      referenceData: {},
+      measurementData: {},
+      isError: false
     };
     
     console.log('✅ AI 분석 완료:', finalResult);
@@ -602,7 +617,15 @@ ${measurementText}
       riskLevel: 'medium',
       timestamp: new Date().toISOString(),
       equipmentName,
-      location
+      location,
+      processingTime: analysisTime,
+      images: {
+        reference: null,
+        measurement: null
+      },
+      referenceData: {},
+      measurementData: {},
+      isError: true
     };
     
     // 사용자에게 명확한 안내 제공

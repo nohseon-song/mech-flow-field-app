@@ -164,4 +164,4 @@ export const EQUIPMENT_TREE = {
 export type EquipmentTreeType = typeof EQUIPMENT_TREE;
 export type EquipmentName = keyof EquipmentTreeType;
 export type PartName<T extends EquipmentName> = keyof EquipmentTreeType[T];
-export type ItemName<T extends EquipmentName, P extends PartName<T>> = EquipmentTreeType[T][P][number];
+export type ItemName<T extends EquipmentName, P extends PartName<T>> = EquipmentTreeType[T][P] extends readonly string[] ? EquipmentTreeType[T][P][number] : never;

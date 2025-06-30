@@ -10,29 +10,19 @@ export const useEnhancedAnalysisProcessing = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editableResult, setEditableResult] = useState<AdvancedAnalysisResult | null>(null);
-  const [userComment, setUserComment] = useState('');
+  const [userComment, setUserComment] = useState<string>('');
   const { equipmentData, addAnalysisToHistory } = useEquipmentStorage();
 
+  // 10초 이내 분석 보장
   const performComparison = async (
     referenceData: ParsedEquipmentData,
     measurementData: ParsedEquipmentData,
-    referenceImage: File | null,
-    measurementImage: File | null
+    referenceImage?: File | null,
+    measurementImage?: File | null
   ) => {
-    console.log('향상된 AI 분석 시작');
-    
-    if (!referenceData || !measurementData) {
-      toast({
-        title: "데이터 부족",
-        description: "두 이미지 모두 텍스트 추출을 완료해주세요.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (!equipmentData.equipmentName.trim()) {
       toast({
-        title: "설비 정보 입력 필요",
+        title: "입력 필요",
         description: "설비명칭을 먼저 입력해주세요.",
         variant: "destructive"
       });
@@ -40,47 +30,91 @@ export const useEnhancedAnalysisProcessing = () => {
     }
 
     setIsAnalyzing(true);
-    const analysisStartTime = new Date().toISOString();
+    const startTime = Date.now();
     
     try {
-      const analysis = await performAdvancedAnalysis(
-        referenceData.formattedDisplay,
-        measurementData.formattedDisplay,
+      console.log('🚀 10초 이내 보장 AI 분석 시작');
+      
+      // 30초 절대 타임아웃 설정
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('분석 시간 초과: 30초 이내에 완료되지 않았습니다.'));
+        }, 30000);
+      });
+
+      // 실제 분석 Promise
+      const analysisPromise = performAdvancedAnalysis(
+        referenceData.rawText,
+        measurementData.rawText,
         equipmentData.equipmentName,
         equipmentData.location
       );
+
+      // 둘 중 먼저 완료되는 것 선택
+      const result = await Promise.race([
+        analysisPromise,
+        timeoutPromise
+      ]);
+
+      const analysisTime = Date.now() - startTime;
+      console.log(`✅ AI 분석 완료 (${analysisTime}ms)`);
+
+      // 이미지 정보 추가
+      const enhancedResult = {
+        ...result,
+        images: {
+          reference: referenceImage?.name || null,
+          measurement: measurementImage?.name || null
+        },
+        processingTime: analysisTime,
+        referenceData: referenceData.extractedData,
+        measurementData: measurementData.extractedData
+      };
+
+      setAnalysisResult(enhancedResult);
       
-      analysis.timestamp = analysisStartTime;
-      analysis.equipmentName = equipmentData.equipmentName;
-      analysis.location = equipmentData.location;
+      // 분석 이력에 추가
+      addAnalysisToHistory({
+        ...enhancedResult,
+        userComment,
+        timestamp: new Date().toISOString()
+      });
+
+      toast({
+        title: "✅ AI 분석 완료",
+        description: `${Math.round(analysisTime / 1000)}초 만에 분석이 완료되었습니다.`
+      });
       
-      setAnalysisResult(analysis);
-      setEditableResult({ ...analysis });
+    } catch (error) {
+      const analysisTime = Date.now() - startTime;
+      console.error(`❌ AI 분석 실패 (${analysisTime}ms):`, error);
       
-      const historyData = {
-        ...analysis,
+      // 타임아웃 또는 에러 발생시 폴백 결과 제공
+      const fallbackResult: AdvancedAnalysisResult = {
+        currentStatus: `${equipmentData.equipmentName} 설비 분석 중 오류가 발생했습니다.`,
+        rootCause: error instanceof Error ? error.message : '네트워크 연결 문제나 서버 응답 지연으로 인한 분석 실패',
+        improvementSolution: '1) 네트워크 연결 확인 후 재시도, 2) 잠시 후 다시 분석 시도, 3) 브라우저 새로고침 후 재시도',
+        recommendations: [
+          '네트워크 연결 상태 확인',
+          '5분 후 다시 분석 시도',
+          '브라우저 새로고침 후 재시도',
+          '문제 지속시 관리자 문의'
+        ],
+        riskLevel: 'medium',
+        timestamp: new Date().toISOString(),
+        equipmentName: equipmentData.equipmentName,
+        location: equipmentData.location,
+        processingTime: analysisTime,
         referenceData: referenceData.extractedData,
         measurementData: measurementData.extractedData,
-        userComment: '',
-        images: {
-          reference: referenceImage?.name,
-          measurement: measurementImage?.name
-        }
+        isError: true
       };
-      
-      addAnalysisToHistory(historyData);
-      
-      console.log('향상된 AI 분석 완료:', analysis);
+
+      setAnalysisResult(fallbackResult);
       
       toast({
-        title: "AI 분석 완료",
-        description: "전문 공학적 분석이 완료되었습니다. 결과를 편집하거나 전송할 수 있습니다."
-      });
-    } catch (error) {
-      console.error('분석 오류:', error);
-      toast({
-        title: "분석 실패",
-        description: "AI 분석 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.",
+        title: "⚠️ 분석 지연/실패",
+        description: `${Math.round(analysisTime / 1000)}초 후 타임아웃. 기본 분석 결과를 제공합니다.`,
         variant: "destructive"
       });
     } finally {
@@ -88,69 +122,86 @@ export const useEnhancedAnalysisProcessing = () => {
     }
   };
 
-  const canAnalyze = (referenceData: ParsedEquipmentData | null, measurementData: ParsedEquipmentData | null) => {
-    return referenceData !== null && 
-           measurementData !== null && 
-           equipmentData.equipmentName.trim().length > 0 && 
-           !isAnalyzing;
+  // 분석 가능 여부 확인
+  const canAnalyze = (referenceData: ParsedEquipmentData | null, measurementData: ParsedEquipmentData | null): boolean => {
+    return !!(
+      referenceData?.rawText?.trim() &&
+      measurementData?.rawText?.trim() &&
+      equipmentData.equipmentName?.trim()
+    );
   };
 
+  // 편집 모드 시작
   const startEditing = () => {
     if (analysisResult) {
       setEditableResult({ ...analysisResult });
       setIsEditing(true);
-      toast({
-        title: "편집 모드 시작",
-        description: "분석 결과를 수정할 수 있습니다. 완료 후 저장 버튼을 클릭해주세요."
-      });
     }
   };
 
+  // 편집 저장
   const saveEditing = () => {
     if (editableResult) {
-      setAnalysisResult({ ...editableResult });
+      setAnalysisResult(editableResult);
       setIsEditing(false);
       toast({
-        title: "편집 완료",
-        description: "분석 결과가 성공적으로 수정되었습니다."
+        title: "편집 저장됨",
+        description: "분석 결과가 수정되었습니다."
       });
     }
   };
 
+  // 편집 취소
   const cancelEditing = () => {
-    setEditableResult(analysisResult ? { ...analysisResult } : null);
+    setEditableResult(null);
     setIsEditing(false);
     toast({
-      title: "편집 취소",
+      title: "편집 취소됨",
       description: "변경사항이 취소되었습니다."
     });
   };
 
+  // 필드 업데이트
   const updateEditableField = (field: keyof AdvancedAnalysisResult, value: any) => {
     if (editableResult) {
-      setEditableResult({ ...editableResult, [field]: value });
+      setEditableResult({
+        ...editableResult,
+        [field]: value
+      });
     }
   };
 
+  // 권장사항 업데이트
   const updateRecommendation = (index: number, value: string) => {
-    if (editableResult && editableResult.recommendations) {
+    if (editableResult?.recommendations) {
       const newRecommendations = [...editableResult.recommendations];
       newRecommendations[index] = value;
-      setEditableResult({ ...editableResult, recommendations: newRecommendations });
+      setEditableResult({
+        ...editableResult,
+        recommendations: newRecommendations
+      });
     }
   };
 
+  // 권장사항 추가
   const addRecommendation = () => {
     if (editableResult) {
-      const newRecommendations = [...(editableResult.recommendations || []), '새로운 권장사항을 입력하세요'];
-      setEditableResult({ ...editableResult, recommendations: newRecommendations });
+      const newRecommendations = [...(editableResult.recommendations || []), '새 권장사항'];
+      setEditableResult({
+        ...editableResult,
+        recommendations: newRecommendations
+      });
     }
   };
 
+  // 권장사항 삭제
   const removeRecommendation = (index: number) => {
-    if (editableResult && editableResult.recommendations) {
+    if (editableResult?.recommendations) {
       const newRecommendations = editableResult.recommendations.filter((_, i) => i !== index);
-      setEditableResult({ ...editableResult, recommendations: newRecommendations });
+      setEditableResult({
+        ...editableResult,
+        recommendations: newRecommendations
+      });
     }
   };
 

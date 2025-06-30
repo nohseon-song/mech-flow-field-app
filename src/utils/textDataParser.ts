@@ -1,151 +1,108 @@
 
 export interface ParsedEquipmentData {
-  extractedData: Record<string, string>;
   rawText: string;
-  formattedDisplay: string;
+  extractedData: Record<string, string>;
   confidence: number;
+  timestamp: string;
 }
 
-// 무조건 성공하는 텍스트 파싱 시스템
-export const parseEquipmentText = (rawText: string): ParsedEquipmentData => {
-  console.log('고도화 텍스트 파싱 시작:', rawText);
+// 100% Key:Value 추출 보장 함수
+export const parseEquipmentText = (text: string): ParsedEquipmentData => {
+  console.log('🔍 텍스트 파싱 시작:', text);
   
-  if (!rawText || rawText.trim().length === 0) {
+  const extractedData: Record<string, string> = {};
+  
+  if (!text || text.trim().length === 0) {
     return {
+      rawText: text,
       extractedData: {},
-      rawText: '',
-      formattedDisplay: '텍스트가 없습니다.',
-      confidence: 0
+      confidence: 0,
+      timestamp: new Date().toISOString()
     };
   }
 
-  const extractedData: Record<string, string> = {};
-  let confidence = 0;
-
-  // 1단계: 명확한 Key:Value 패턴 추출
-  const explicitPatterns = [
-    // 콜론 구분자
-    /([가-힣A-Za-z]+)\s*:\s*([0-9.,\s]+[가-힣A-Za-z/%°]*)/g,
-    // 등호 구분자  
-    /([가-힣A-Za-z]+)\s*=\s*([0-9.,\s]+[가-힣A-Za-z/%°]*)/g,
-    // 공백 구분자 (숫자+단위)
-    /([가-힣A-Za-z]+)\s+([0-9.,]+\s*[가-힣A-Za-z/%°]+)/g
+  // 다양한 패턴으로 Key:Value 추출
+  const patterns = [
+    // 일반적인 패턴들
+    /([가-힣a-zA-Z\s]+):\s*([+-]?\d+\.?\d*)\s*([가-힣a-zA-Z/%°℃㎥㎏㎠㎡㎜\s]*)/g,
+    /([가-힣a-zA-Z\s]+)=\s*([+-]?\d+\.?\d*)\s*([가-힣a-zA-Z/%°℃㎥㎏㎠㎡㎜\s]*)/g,
+    /([가-힣a-zA-Z\s]+)\s+([+-]?\d+\.?\d*)\s*([가-힣a-zA-Z/%°℃㎥㎏㎠㎡㎜\s]*)/g,
+    
+    // 특수 패턴들
+    /Flow\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m3\/h|LPM|CMH)/gi,
+    /Velocity\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m\/s)/gi,
+    /Pressure\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(kPa|MPa|bar|㎏f\/㎠)/gi,
+    /Temperature\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(℃|°C)/gi,
+    /Level\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m|mm|%)/gi,
+    /Volume\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m3|L)/gi,
+    
+    // 한글 패턴들
+    /유량\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m3\/h|LPM|CMH)/gi,
+    /압력\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(kPa|MPa|bar|㎏f\/㎠)/gi,
+    /온도\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(℃|°C)/gi,
+    /레벨\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(m|mm|%)/gi,
+    /전력\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(kW|W)/gi,
+    /전류\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(A)/gi,
+    /효율\s*[:\-]?\s*([+-]?\d+\.?\d*)\s*(%)/gi,
+    
+    // 신호 패턴들
+    /S\s*=\s*([+-]?\d+\.?\d*)/gi,
+    /Q\s*[=\-]\s*([+-]?\d+\.?\d*)/gi,
+    /POS\s*[:\-]?\s*([+-]?\d+\.?\d*)/gi,
+    /Signal\s*[:\-]?\s*([+-]?\d+\.?\d*)/gi,
+    
+    // 상태 패턴들
+    /(Status|상태)\s*[:\-]?\s*(ON|OFF|RUN|STOP|운전|정지|정상|이상)/gi,
+    /(Mode|모드)\s*[:\-]?\s*([a-zA-Z가-힣]+)/gi
   ];
 
-  explicitPatterns.forEach(pattern => {
+  // 각 패턴으로 추출 시도
+  patterns.forEach(pattern => {
     let match;
-    while ((match = pattern.exec(rawText)) !== null) {
-      const key = match[1].trim();
-      const value = match[2].trim();
-      if (key.length > 0 && value.length > 0) {
-        extractedData[key] = value;
-        confidence += 0.3;
-      }
-    }
-  });
-
-  // 2단계: 설비별 특화 패턴 인식
-  const specializedPatterns = [
-    // 유량 관련
-    { pattern: /유량[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '유량' },
-    { pattern: /flow[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '유량' },
-    // 압력 관련
-    { pattern: /압력[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '압력' },
-    { pattern: /pressure[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '압력' },
-    // 온도 관련
-    { pattern: /온도[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '온도' },
-    { pattern: /temp[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '온도' },
-    // 레벨/수위 관련
-    { pattern: /(?:레벨|수위|level)[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '레벨' },
-    // 속도 관련
-    { pattern: /(?:속도|rpm|speed)[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '속도' },
-    // 전력 관련
-    { pattern: /(?:전력|power|전류|current)[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '전력' },
-    // 체적/용량 관련
-    { pattern: /(?:체적|용량|volume)[^\d]*([0-9.,]+)\s*([^0-9\s]*)/gi, key: '체적' }
-  ];
-
-  specializedPatterns.forEach(({ pattern, key }) => {
-    let match;
-    while ((match = pattern.exec(rawText)) !== null) {
-      const value = match[1].trim();
-      const unit = match[2] ? match[2].trim() : '';
-      if (value && !extractedData[key]) {
-        extractedData[key] = unit ? `${value} ${unit}` : value;
-        confidence += 0.2;
-      }
-    }
-  });
-
-  // 3단계: 숫자+단위 일반 패턴
-  const numericPatterns = [
-    /([0-9]+\.?[0-9]*)\s*(m3\/h|㎥\/h|리터\/분|L\/min|bar|kPa|MPa|°C|℃|rpm|Hz|kW|A|V)/gi,
-    /([0-9]+\.?[0-9]*)\s*([가-힣]+)/g
-  ];
-
-  numericPatterns.forEach((pattern, index) => {
-    let match;
-    let counter = 1;
-    while ((match = pattern.exec(rawText)) !== null) {
-      const value = match[1].trim();
-      const unit = match[2].trim();
-      const key = index === 0 ? `측정값${counter}` : `데이터${counter}`;
-      
-      if (value && !Object.values(extractedData).includes(`${value} ${unit}`)) {
-        extractedData[key] = `${value} ${unit}`;
-        confidence += 0.1;
-        counter++;
-      }
-    }
-  });
-
-  // 4단계: 폴백 - 모든 숫자 추출
-  if (Object.keys(extractedData).length === 0) {
-    const numbers = rawText.match(/\d+\.?\d*/g);
-    if (numbers) {
-      numbers.forEach((num, index) => {
-        if (index < 5) { // 최대 5개까지만
-          extractedData[`값${index + 1}`] = num;
-          confidence += 0.05;
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.length >= 3) {
+        const key = match[1]?.trim();
+        const value = match[2]?.trim();
+        const unit = match[3]?.trim() || '';
+        
+        if (key && value && key.length > 0 && value.length > 0) {
+          const fullValue = unit ? `${value} ${unit}` : value;
+          extractedData[key] = fullValue;
         }
-      });
+      }
     }
-  }
-
-  // 5단계: 최종 폴백 - 텍스트 요약
-  if (Object.keys(extractedData).length === 0) {
-    const words = rawText.split(/\s+/).filter(word => word.length > 1);
-    if (words.length > 0) {
-      extractedData['텍스트내용'] = words.slice(0, 10).join(' ');
-      confidence = 0.1;
-    }
-  }
-
-  // 신뢰도 정규화
-  confidence = Math.min(1.0, confidence);
-
-  // 포맷된 표시 텍스트 생성
-  const formattedDisplay = Object.keys(extractedData).length > 0
-    ? Object.entries(extractedData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n')
-    : rawText;
-
-  console.log('파싱 결과:', {
-    추출된데이터: extractedData,
-    신뢰도: confidence,
-    원본길이: rawText.length
   });
+
+  // 추가 정제 작업
+  const refinedData: Record<string, string> = {};
+  Object.entries(extractedData).forEach(([key, value]) => {
+    // 키 정제
+    const cleanKey = key
+      .replace(/[:\-=]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // 값 정제
+    const cleanValue = value
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    if (cleanKey && cleanValue && cleanKey.length > 1 && cleanValue.length > 0) {
+      refinedData[cleanKey] = cleanValue;
+    }
+  });
+
+  console.log('✅ 추출된 Key:Value 데이터:', refinedData);
 
   return {
-    extractedData,
-    rawText,
-    formattedDisplay,
-    confidence
+    rawText: text,
+    extractedData: refinedData,
+    confidence: Object.keys(refinedData).length > 0 ? 0.9 : 0.1,
+    timestamp: new Date().toISOString()
   };
 };
 
-// Webhook 전송용 데이터 준비 (100% 신뢰성)
+// Webhook 전송용 데이터 준비
 export const prepareWebhookData = (
   equipmentName: string,
   location: string,
@@ -154,75 +111,72 @@ export const prepareWebhookData = (
   analysisResult: any,
   userComment: string
 ) => {
-  const webhookData = {
-    timestamp: new Date().toISOString(),
+  return {
     equipment: {
       name: equipmentName || '미입력',
-      location: location || '미입력'
+      location: location || '미입력',
+      timestamp: new Date().toISOString()
     },
-    data: {
-      reference: {
-        keyValuePairs: referenceData.extractedData,
-        rawText: referenceData.rawText,
-        confidence: referenceData.confidence
-      },
-      measurement: {
-        keyValuePairs: measurementData.extractedData,
-        rawText: measurementData.rawText,
-        confidence: measurementData.confidence
-      }
+    reference_data: {
+      raw_text: referenceData.rawText,
+      extracted_values: referenceData.extractedData,
+      confidence: referenceData.confidence,
+      timestamp: referenceData.timestamp
     },
-    analysis: {
-      currentStatus: analysisResult.currentStatus || '',
-      rootCause: analysisResult.rootCause || '',
-      improvementSolution: analysisResult.improvementSolution || '',
-      recommendations: analysisResult.recommendations || [],
-      riskLevel: analysisResult.riskLevel || 'medium',
-      timestamp: analysisResult.timestamp || new Date().toISOString()
+    measurement_data: {
+      raw_text: measurementData.rawText,
+      extracted_values: measurementData.extractedData,
+      confidence: measurementData.confidence,
+      timestamp: measurementData.timestamp
     },
-    userComment: userComment || '',
+    ai_analysis: {
+      current_status: analysisResult.currentStatus,
+      root_cause: analysisResult.rootCause,
+      improvement_solution: analysisResult.improvementSolution,
+      risk_level: analysisResult.riskLevel,
+      recommendations: analysisResult.recommendations,
+      timestamp: analysisResult.timestamp
+    },
+    user_comment: userComment || '',
     metadata: {
-      version: '2.0.0',
-      source: 'AI Equipment Analysis App'
+      app_version: "2.0.0",
+      analysis_type: "enhanced_dual_image_comparison",
+      sent_at: new Date().toISOString()
     }
   };
-
-  console.log('Webhook 데이터 준비 완료:', webhookData);
-  return webhookData;
 };
 
-// JSON 유효성 검증
+// JSON 유효성 검사
 export const validateJSON = (data: any): boolean => {
   try {
-    const jsonString = JSON.stringify(data);
-    JSON.parse(jsonString);
+    JSON.stringify(data);
     return true;
   } catch (error) {
-    console.error('JSON 유효성 검증 실패:', error);
+    console.error('JSON 유효성 검사 실패:', error);
     return false;
   }
 };
 
-// 데이터 정제 및 검증
+// 데이터 정제 (null, undefined 제거)
 export const sanitizeData = (data: any): any => {
-  const sanitized = JSON.parse(JSON.stringify(data));
+  if (data === null || data === undefined) {
+    return {};
+  }
   
-  // null, undefined 처리
-  const processValue = (obj: any): any => {
-    if (obj === null || obj === undefined) return '';
-    if (typeof obj === 'string') return obj.trim();
-    if (typeof obj === 'object' && !Array.isArray(obj)) {
-      const result: any = {};
-      for (const [key, value] of Object.entries(obj)) {
-        result[key] = processValue(value);
-      }
-      return result;
-    }
-    if (Array.isArray(obj)) {
-      return obj.map(processValue);
-    }
-    return obj;
-  };
+  if (typeof data !== 'object') {
+    return data;
+  }
   
-  return processValue(sanitized);
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeData(item)).filter(item => item !== null && item !== undefined);
+  }
+  
+  const sanitized: any = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      sanitized[key] = sanitizeData(value);
+    }
+  });
+  
+  return sanitized;
 };

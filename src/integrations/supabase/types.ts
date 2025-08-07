@@ -42,6 +42,9 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          document_url: string | null
+          google_doc_id: string | null
+          google_sheet_id: string | null
           id: string
           title: string
           updated_at: string
@@ -50,6 +53,9 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          document_url?: string | null
+          google_doc_id?: string | null
+          google_sheet_id?: string | null
           id?: string
           title: string
           updated_at?: string
@@ -58,6 +64,9 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          document_url?: string | null
+          google_doc_id?: string | null
+          google_sheet_id?: string | null
           id?: string
           title?: string
           updated_at?: string

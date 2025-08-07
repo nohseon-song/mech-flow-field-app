@@ -34,7 +34,7 @@ const Header = ({ onSettingsClick, onAdminClick }: HeaderProps) => {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {user?.role === 'admin' && (
+            {user && (
               <Button 
                 variant="ghost" 
                 size="sm"

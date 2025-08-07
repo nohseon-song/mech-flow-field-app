@@ -6,7 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import DualImageOCR from "./pages/DualImageOCR";
 import EnhancedDualImageOCR from "./pages/EnhancedDualImageOCR";
 import AIChatbot from "./pages/AIChatbot";
@@ -37,42 +39,45 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingFallback />}>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/ai/dual-image-ocr" element={
-                  <ErrorBoundary>
-                    <DualImageOCR />
-                  </ErrorBoundary>
-                } />
-                <Route path="/ai/enhanced-dual-image-ocr" element={
-                  <ErrorBoundary>
-                    <EnhancedDualImageOCR />
-                  </ErrorBoundary>
-                } />
-                <Route path="/ai/chatbot" element={
-                  <ErrorBoundary>
-                    <AIChatbot />
-                  </ErrorBoundary>
-                } />
-                <Route path="/ai/enhanced-chatbot" element={
-                  <ErrorBoundary>
-                    <EnhancedAIChatbot />
-                  </ErrorBoundary>
-                } />
-                <Route path="/equipment-inspection" element={
-                  <ErrorBoundary>
-                    <EquipmentInspection />
-                  </ErrorBoundary>
-                } />
-              </Routes>
-            </ErrorBoundary>
-          </Suspense>
-        </BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingFallback />}>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<Index />} />
+                  <Route path="/ai/dual-image-ocr" element={
+                    <ErrorBoundary>
+                      <DualImageOCR />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="/ai/enhanced-dual-image-ocr" element={
+                    <ErrorBoundary>
+                      <EnhancedDualImageOCR />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="/ai/chatbot" element={
+                    <ErrorBoundary>
+                      <AIChatbot />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="/ai/enhanced-chatbot" element={
+                    <ErrorBoundary>
+                      <EnhancedAIChatbot />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="/equipment-inspection" element={
+                    <ErrorBoundary>
+                      <EquipmentInspection />
+                    </ErrorBoundary>
+                  } />
+                </Routes>
+              </ErrorBoundary>
+            </Suspense>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

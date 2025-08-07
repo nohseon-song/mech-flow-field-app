@@ -1,15 +1,32 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, AuthState, LoginCredentials, SignupCredentials } from '@/types/auth';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { initializeAdminAccount, getCurrentUser, removeCurrentUser, checkAdminPersistentLogin } from '@/utils/authUtils';
-import { authenticateUser, registerUser } from '@/services/authService';
+
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface SignupCredentials {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  displayName?: string;
+}
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (credentials: SignupCredentials) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuthStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,61 +34,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
+    session: null,
     loading: true,
     error: null,
   });
   const { toast } = useToast();
 
-  const checkAuthStatus = async () => {
-    try {
-      setAuthState(prev => ({ ...prev, loading: true }));
-      
-      initializeAdminAccount();
-      
-      // 먼저 관리자 영구 로그인 상태 확인
-      const persistentAdmin = checkAdminPersistentLogin();
-      if (persistentAdmin) {
-        setAuthState({
-          user: persistentAdmin,
-          loading: false,
-          error: null,
-        });
-        return;
-      }
-      
-      const user = getCurrentUser();
-      setAuthState({
-        user,
-        loading: false,
-        error: null,
-      });
-    } catch (error) {
-      setAuthState({
-        user: null,
-        loading: false,
-        error: '인증 상태 확인 중 오류가 발생했습니다.',
-      });
-    }
-  };
-
   const login = async (credentials: LoginCredentials) => {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
-      const user = await authenticateUser(credentials);
-      
-      setAuthState({
-        user,
-        loading: false,
-        error: null,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
       });
-      
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: '로그인 성공',
-        description: `환영합니다${user.role === 'admin' ? ', 관리자님' : ''}!${user.role === 'admin' ? ' (영구 로그인 상태)' : ''}`,
+        description: '환영합니다!',
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.';
+    } catch (error: any) {
+      const errorMessage = error?.message || '로그인 중 오류가 발생했습니다.';
       setAuthState(prev => ({
         ...prev,
         loading: false,
@@ -89,20 +76,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
-      await registerUser(credentials);
+      if (credentials.password !== credentials.confirmPassword) {
+        throw new Error('비밀번호가 일치하지 않습니다.');
+      }
+
+      const redirectUrl = `${window.location.origin}/`;
       
-      setAuthState({
-        user: null,
-        loading: false,
-        error: null,
+      const { data, error } = await supabase.auth.signUp({
+        email: credentials.email,
+        password: credentials.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            display_name: credentials.displayName || credentials.email.split('@')[0]
+          }
+        }
       });
+
+      if (error) {
+        throw error;
+      }
+
+      setAuthState(prev => ({ ...prev, loading: false }));
       
       toast({
-        title: '회원가입 신청 완료',
-        description: '관리자 승인 후 로그인이 가능합니다.',
+        title: '회원가입 완료',
+        description: '이메일을 확인하여 계정을 활성화해주세요.',
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '회원가입 중 오류가 발생했습니다.';
+    } catch (error: any) {
+      const errorMessage = error?.message || '회원가입 중 오류가 발생했습니다.';
       setAuthState(prev => ({
         ...prev,
         loading: false,
@@ -117,33 +119,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    const currentUser = authState.user;
-    
-    removeCurrentUser();
-    
-    // 관리자 영구 로그인 상태인 경우 로그아웃되지 않음
-    if (currentUser?.role === 'admin' && localStorage.getItem('adminPersistentLogin') === 'true') {
+    try {
+      await supabase.auth.signOut();
       toast({
-        title: '관리자 계정',
-        description: '관리자 계정은 영구 로그인 상태가 유지됩니다.',
+        title: '로그아웃',
+        description: '성공적으로 로그아웃되었습니다.',
       });
-      return;
+    } catch (error: any) {
+      toast({
+        title: '로그아웃 오류',
+        description: '로그아웃 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
     }
-    
-    setAuthState({
-      user: null,
-      loading: false,
-      error: null,
-    });
-    
-    toast({
-      title: '로그아웃',
-      description: '성공적으로 로그아웃되었습니다.',
-    });
   };
 
   useEffect(() => {
-    checkAuthStatus();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setAuthState({
+          user: session?.user ?? null,
+          session: session,
+          loading: false,
+          error: null,
+        });
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthState({
+        user: session?.user ?? null,
+        session: session,
+        loading: false,
+        error: null,
+      });
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -152,7 +166,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login,
       signup,
       logout,
-      checkAuthStatus,
     }}>
       {children}
     </AuthContext.Provider>
